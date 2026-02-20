@@ -1,11 +1,11 @@
- 'use client';
- 
- import { useEffect, useState } from 'react';
+'use client';
+
+import { Suspense, useEffect, useState } from 'react';
  import { useRouter, useSearchParams } from 'next/navigation';
  import type { Account } from 'appwrite';
  import { Button } from '@/components/ui/button';
  
- export default function AuthCallback() {
+function CallbackInner() {
    const router = useRouter();
    const params = useSearchParams();
    const [status, setStatus] = useState<'idle' | 'working' | 'error'>('idle');
@@ -56,3 +56,24 @@
      </div>
    );
  }
+
+export default function AuthCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="glass rounded-2xl p-6 shadow-lg text-center">
+            <div className="text-lg font-semibold mb-2">Signing you in…</div>
+            <div className="inline-flex items-center gap-1 justify-center">
+              <span className="copilotKitActivityDot" />
+              <span className="copilotKitActivityDot" style={{ animationDelay: '0.15s' }} />
+              <span className="copilotKitActivityDot" style={{ animationDelay: '0.3s' }} />
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <CallbackInner />
+    </Suspense>
+  );
+}
