@@ -20,6 +20,9 @@
     "@langchain/langgraph": "1.0.2",
     "@langchain/langgraph-checkpoint": "1.0.0",
     "@langchain/openai": "^1.1.3",
+    "@langchain/mistralai": "^1.0.4",
+    "@langchain/google": "^0.1.1",
+    "@langchain/groq": "^1.1.1",
     "zod": "^3.23.8"
   }
 }
