@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx @langchain/langgraph-cli dev --port 8123 --no-browser",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js"
+    "start": "tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +25,7 @@
     "@langchain/mistralai": "^1.0.4",
     "@langchain/google": "^0.1.1",
     "@langchain/groq": "^1.1.1",
+    "tsx": "^4.7.1",
     "zod": "^3.23.8"
   }
 }

@@ -6,6 +6,5 @@ COPY tsconfig.json ./tsconfig.json
 COPY src ./src
 COPY langgraph.json ./langgraph.json
 RUN pnpm install
-RUN pnpm run build
 RUN touch .env
-CMD ["pnpm","run","start"]
+CMD ["pnpm","exec","tsx","src/server.ts"]
