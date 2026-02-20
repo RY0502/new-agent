@@ -6,6 +6,5 @@ COPY tsconfig.json ./tsconfig.json
 COPY src ./src
 COPY langgraph.json ./langgraph.json
 RUN pnpm install --prod
-ENV PORT=8123
-EXPOSE 8123
-CMD ["sh","-c","npx @langchain/langgraph-cli dev --port ${PORT:-8123} --no-browser"]
+RUN touch .env
+CMD ["sh","-c","npx @langchain/langgraph-cli dev --host 0.0.0.0 --port ${PORT:-10000} --no-browser"]
