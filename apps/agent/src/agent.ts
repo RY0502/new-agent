@@ -6,9 +6,6 @@
 import { RunnableConfig } from "@langchain/core/runnables";
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
-import { ChatMistralAI } from "@langchain/mistralai";
-import { ChatGoogle } from "@langchain/google";
-import { ChatGroq }  from "@langchain/groq";
 import { CopilotKitStateAnnotation } from "@copilotkit/sdk-js/langchain";
 import { copilotKitEmitMessage, copilotKitEmitState } from "@copilotkit/sdk-js/langchain";
 import { Annotation } from "@langchain/langgraph";
@@ -45,6 +42,7 @@ const mistralChat = async (
   state: typeof AgentStateAnnotation.State,
   _config: RunnableConfig,
 ): Promise<typeof AgentStateAnnotation.Update> => {
+  const { ChatMistralAI } = await import("@langchain/mistralai");
   const mistral = new ChatMistralAI({ model: "mistral-large-latest" });
   const lastUser = getLastUserText(state.messages as any);
   const reply = await mistral.invoke([
@@ -67,6 +65,7 @@ const geminiSearch = async (
   state: typeof AgentStateAnnotation.State,
   _config: RunnableConfig,
 ): Promise<typeof AgentStateAnnotation.Update> => {
+  const { ChatGoogle } = await import("@langchain/google");
   const llm = new ChatGoogle("gemini-2.5-flash")
   .bindTools([
     {
@@ -96,6 +95,7 @@ const groqClassify = async (
   state: typeof AgentStateAnnotation.State,
   _config: RunnableConfig
 ): Promise<typeof AgentStateAnnotation.Update> => {
+  const { ChatGroq } = await import("@langchain/groq");
   const groq = new ChatGroq({ 
     model: "openai/gpt-oss-120b",
     temperature: 0,
