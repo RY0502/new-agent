@@ -6,5 +6,7 @@ COPY tsconfig.json ./tsconfig.json
 COPY src ./src
 COPY langgraph.json ./langgraph.json
 RUN pnpm install --prod
+RUN pnpm install
+RUN pnpm exec tsc --outDir dist
 RUN touch .env
-CMD ["sh","-c","npx @langchain/langgraph-cli dev --host 0.0.0.0 --port ${PORT:-10000} --no-browser"]
+CMD ["node","dist/server.js"]
