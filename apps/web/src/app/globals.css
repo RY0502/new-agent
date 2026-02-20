@@ -1,0 +1,128 @@
+@reference "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 239 30% 98%;
+    --foreground: 239 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 239 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 239 10% 10%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 239 20% 95%;
+    --secondary-foreground: 239 10% 10%;
+    --muted: 239 15% 95%;
+    --muted-foreground: 239 8% 45%;
+    --accent: 187 92% 69%;
+    --accent-foreground: 239 10% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 239 15% 88%;
+    --input: 239 15% 88%;
+    --ring: 239 84% 67%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 1rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --background: 239 15% 8%;
+    --foreground: 239 10% 95%;
+    --card: 239 12% 12%;
+    --card-foreground: 239 10% 95%;
+    --popover: 239 15% 8%;
+    --popover-foreground: 239 10% 95%;
+    --primary: 239 84% 72%;
+    --primary-foreground: 239 15% 8%;
+    --secondary: 239 10% 18%;
+    --secondary-foreground: 239 10% 95%;
+    --muted: 239 10% 18%;
+    --muted-foreground: 239 8% 60%;
+    --accent: 187 92% 72%;
+    --accent-foreground: 239 15% 8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 239 10% 22%;
+    --input: 239 10% 18%;
+    --ring: 239 84% 72%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+.aurora-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(30, 30, 40, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, 
+    hsl(239, 84%, 67%), 
+    hsl(235, 86%, 65%),
+    hsl(187, 92%, 69%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+html .copilotKitChat,
+body .copilotKitChat {
+  border-radius: clamp(16px, 2.5vw, 32px) !important;
+  overflow: hidden !important;
+}
