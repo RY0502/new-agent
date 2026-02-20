@@ -7,4 +7,5 @@ COPY src ./src
 COPY langgraph.json ./langgraph.json
 RUN pnpm install
 RUN touch .env
+RUN npx @langchain/langgraph-cli build || true
 CMD ["sh","-c","npx @langchain/langgraph-cli dev --host 0.0.0.0 --port ${PORT:-10000} --no-browser"]
