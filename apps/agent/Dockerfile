@@ -5,7 +5,6 @@ COPY package.json ./
 COPY tsconfig.json ./tsconfig.json
 COPY src ./src
 COPY langgraph.json ./langgraph.json
-RUN pnpm install --prod
 RUN pnpm install
 RUN pnpm exec tsc --outDir dist
 RUN touch .env
