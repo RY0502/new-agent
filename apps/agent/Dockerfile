@@ -9,4 +9,4 @@ RUN pnpm install --prod
 RUN pnpm install
 RUN pnpm exec tsc --outDir dist
 RUN touch .env
-CMD ["node","dist/server.js"]
+CMD ["node","dist/src/server.js"]
