@@ -88,7 +88,10 @@ const appData = async (
 ): Promise<typeof AgentStateAnnotation.Update> => {
   const appEvent = "Classifying search intent";
   await copilotKitEmitMessage(_config, appEvent);
-  return {appEvent};
+  return {
+    appEvent,
+    messages: [new SystemMessage(appEvent)],
+  };
 }
 
 const groqClassify = async (
@@ -123,7 +126,13 @@ const groqClassify = async (
   const statusMsg = needsSearch ? "Routing: SEARCH" : "Routing: NO_SEARCH";
   await copilotKitEmitMessage(_config, statusMsg);
   await copilotKitEmitState(_config, { needsSearch, reason });
-  return { needsSearch };
+  const details = typeof reason === "string" && reason.trim().length > 0 ? `Reason: ${reason}` : undefined;
+  return {
+    needsSearch,
+    messages: [
+      new SystemMessage(statusMsg + (details ? `\n${details}` : "")),
+    ],
+  };
 };
 
 /**
