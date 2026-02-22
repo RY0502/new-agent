@@ -4,21 +4,35 @@
  */
 
 import { RunnableConfig } from "@langchain/core/runnables";
-import { AIMessage, SystemMessage } from "@langchain/core/messages";
+import { AIMessage, SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { CopilotKitStateAnnotation } from "@copilotkit/sdk-js/langchain";
 import { copilotKitEmitMessage, copilotKitEmitState } from "@copilotkit/sdk-js/langchain";
 import { Annotation } from "@langchain/langgraph";
 
-function getLastUserText(messages: any[]): string {
-  if (!Array.isArray(messages) || messages.length === 0) return "";
-  const m = messages[messages.length - 1];
-  const c = (m as any)?.content;
+function extractText(c: any): string {
   if (typeof c === "string") return c;
   if (Array.isArray(c)) {
     const tp = c.find((p) => p?.type === "text");
     if (tp?.text) return String(tp.text);
-    return c.map((p) => (typeof p === "string" ? p : p?.text ?? "")).join(" ").trim();
+    return c.map((p: any) => (typeof p === "string" ? p : p?.text ?? "")).join(" ").trim();
+  }
+  if (typeof c?.text === "string") return c.text;
+  return "";
+}
+
+function getLastUserText(messages: any[]): string {
+  if (!Array.isArray(messages) || messages.length === 0) return "";
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    const role = (m as any)?.role ?? (m as any)?.type;
+    const isHuman =
+      m instanceof HumanMessage ||
+      role === "human" ||
+      role === "user";
+    if (isHuman) {
+      return extractText((m as any)?.content);
+    }
   }
   return "";
 }
@@ -90,7 +104,7 @@ const appData = async (
   await copilotKitEmitMessage(_config, appEvent);
   return {
     appEvent,
-    messages: [new SystemMessage(appEvent)],
+    messages: [new AIMessage(`<status>${appEvent}</status>`)],
   };
 }
 
@@ -130,7 +144,7 @@ const groqClassify = async (
   return {
     needsSearch,
     messages: [
-      new SystemMessage(statusMsg + (details ? `\n${details}` : "")),
+      new AIMessage(`<status>${statusMsg}${details ? `\n${details}` : ""}</status>`),
     ],
   };
 };

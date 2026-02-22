@@ -1,50 +1,17 @@
 'use client';
 
-import { CopilotChat, useCopilotChat } from "@copilotkit/react-ui";
+import { CopilotChat } from "@copilotkit/react-ui";
 import UserStatus from "@/components/UserStatus";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Send, StopCircle, ThumbsUp, ThumbsDown, Upload, X, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { useEffect, useState } from "react";
 
-function StatusStream() {
-  const { visibleMessages } = useCopilotChat();
-  const [statuses, setStatuses] = useState<{ id: string; text: string }[]>([]);
-  useEffect(() => {
-    const next: { id: string; text: string }[] = [];
-    for (const m of visibleMessages as any[]) {
-      const id = typeof m?.id === "string" ? m.id : "";
-      let text = "";
-      if (typeof m?.content === "string") text = m.content;
-      else if (Array.isArray(m?.content)) {
-        const part = (m.content as any[]).find((p) => p?.type === "text");
-        text = part?.text ?? "";
-      } else if (typeof m?.content?.text === "string") {
-        text = m.content.text;
-      }
-      const isStatus = /^Routing: /.test(text) || text === "Classifying search intent";
-      if (isStatus && !statuses.some((s) => s.id === id || s.text === text)) {
-        next.push({ id: id || text, text });
-      }
-    }
-    if (next.length) setStatuses((prev) => [...prev, ...next]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleMessages]);
-  if (!statuses.length) return null;
+function StatusTag({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="mb-3 md:mb-4">
-      <div className="flex flex-wrap gap-2">
-        {statuses.map((s) => (
-          <span
-            key={s.id}
-            className="inline-flex items-center rounded-full px-3 py-1 text-xs md:text-sm bg-accent/20 text-foreground border border-accent/40"
-          >
-            {s.text}
-          </span>
-        ))}
-      </div>
-    </div>
+    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs md:text-sm bg-accent/20 text-foreground border border-accent/40">
+      {children}
+    </span>
   );
 }
 
@@ -71,9 +38,9 @@ export default function Home() {
           <div className={cn("w-full h-full mt-2 md:mt-4")}>
             <div className="h-full flex flex-col">
               <div className="flex-1 min-h-0">
-                <StatusStream />
                 <CopilotChat
                   className="w-full h-full"
+                  markdownTagRenderers={{ status: StatusTag }}
                   labels={{
                     title: "Your Assistant",
                     initial: "Hi! 👋 How can I assist you today?",
