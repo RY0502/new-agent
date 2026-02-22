@@ -4,14 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser",
-    "build": "tsc -p tsconfig.json",
-    "start": "tsx src/server.ts"
+    "dev": "npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@langchain/langgraph-cli": "^1.1.13",
     "@types/html-to-text": "^9.0.4",
     "@types/node": "^22.9.0",
     "typescript": "^5.6.3"

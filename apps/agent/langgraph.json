@@ -1,9 +1,8 @@
 {
   "node_version": "20",
-  "dockerfile_lines": [],
-  "dependencies": ["./dist"],
   "graphs": {
-    "starterAgent": "./dist/agent.js:graph"
+    "starterAgent": "./src/agent.ts:graph"
   },
-  "env": ".env"
+  "env": ".env",
+  "dependencies": ["."]
 }
