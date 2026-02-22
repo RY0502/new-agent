@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Send, StopCircle, ThumbsUp, ThumbsDown, Upload, X, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { useEffect, useRef, useState } from "react";
 
 function StatusTag({ children }: { children?: React.ReactNode }) {
   return (
@@ -17,6 +18,15 @@ function StatusTag({ children }: { children?: React.ReactNode }) {
 
 export default function Home() {
   const { loggedIn, loading, login } = useAuthStatus();
+  const endRef = useRef<HTMLDivElement | null>(null);
+  const [streaming, setStreaming] = useState(false);
+  useEffect(() => {
+    if (!streaming) return;
+    const id = setInterval(() => {
+      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 300);
+    return () => clearInterval(id);
+  }, [streaming]);
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       <div className="aurora-bg" />
@@ -41,6 +51,10 @@ export default function Home() {
                 <CopilotChat
                   className="w-full h-full"
                   markdownTagRenderers={{ status: StatusTag }}
+                  onInProgress={(p) => {
+                    setStreaming(p);
+                    if (p) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+                  }}
                   labels={{
                     title: "Your Assistant",
                     initial: "Hi! 👋 How can I assist you today?",
@@ -74,6 +88,7 @@ export default function Home() {
                   }}
                   imageUploadsEnabled={true}
                 />
+                <div ref={endRef} />
                 {!loading && !loggedIn && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
                     <div className="glass rounded-2xl p-6 shadow-lg text-center">

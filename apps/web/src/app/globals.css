@@ -7,6 +7,10 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+html, body {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   :root {
     --background: 239 30% 98%;
