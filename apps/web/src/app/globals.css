@@ -126,3 +126,14 @@ body .copilotKitChat {
   border-radius: clamp(16px, 2.5vw, 32px) !important;
   overflow: hidden !important;
 }
+
+@media (max-width: 640px) {
+  /* Make the chat fill the viewport on small screens */
+  .copilotKitChat {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100dvh - 160px) !important; /* account for header/footer */
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+}

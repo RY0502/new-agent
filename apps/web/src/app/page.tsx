@@ -31,6 +31,7 @@ export default function Home() {
             <div className="h-full flex flex-col">
               <div className="flex-1 min-h-0">
                 <CopilotChat
+                  className="w-full h-full"
                   labels={{
                     title: "Your Assistant",
                     initial: "Hi! 👋 How can I assist you today?",
