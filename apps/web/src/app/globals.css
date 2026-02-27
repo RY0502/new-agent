@@ -136,8 +136,14 @@ body .copilotKitChat {
   .copilotKitChat {
     width: 100% !important;
     max-width: 100% !important;
-    height: calc(100dvh - 160px) !important; /* account for header/footer */
+    height: calc(100dvh - 120px) !important; /* tighter header/footer on mobile */
     margin: 0 !important;
     border-radius: 0 !important;
+  }
+  main {
+    padding: 0.75rem !important;
+  }
+  header {
+    margin-bottom: 0.75rem !important;
   }
 }

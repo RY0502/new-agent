@@ -111,11 +111,10 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <footer className="relative z-10 w-full py-4 md:py-6 px-4 mt-auto flex items-center justify-center">
+      <footer className="relative z-10 w-full py-3 md:py-6 px-4 mt-auto flex items-center justify-center pb-[env(safe-area-inset-bottom)]">
         <div className="glass inline-flex items-center gap-2 rounded-full px-5 py-3 shadow-md border">
           <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
           <span className="text-xs md:text-sm text-muted-foreground/80">Crafted with</span>
-          <span className="text-xs md:text-sm font-medium">LangGraph + CopilotKit</span>
           <span className="mx-1.5 text-indigo-500 dark:text-indigo-400">✨</span>
           <span className="text-xs md:text-sm text-muted-foreground/80">by</span>
           <span className="ml-1.5 gradient-text font-semibold">RYaxn</span>
