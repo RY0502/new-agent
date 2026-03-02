@@ -9,6 +9,7 @@ body {
 
 html, body {
   scroll-behavior: smooth;
+  overscroll-behavior: none;
 }
 
 @layer base {
@@ -139,6 +140,13 @@ body .copilotKitChat {
     height: calc(100dvh - 120px) !important; /* tighter header/footer on mobile */
     margin: 0 !important;
     border-radius: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  html, body {
+    overflow: hidden !important;
+    height: 100%;
   }
   main {
     padding: 0.75rem !important;

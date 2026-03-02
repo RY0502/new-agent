@@ -9,10 +9,24 @@ import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useEffect, useRef, useState } from "react";
 
 function StatusTag({ children }: { children?: React.ReactNode }) {
+  const content =
+    typeof children === "string"
+      ? children
+      : Array.isArray(children)
+      ? children.join("")
+      : (children as any)?.toString?.() ?? "";
+  const parts = String(content).split(/\r?\n+/).map((p) => p.trim()).filter(Boolean);
   return (
-    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs md:text-sm bg-accent/20 text-foreground border border-accent/40">
-      {children}
-    </span>
+    <div className="flex flex-wrap items-center gap-1.5">
+      {parts.map((p, i) => (
+        <span
+          key={`${p}-${i}`}
+          className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] md:text-xs bg-accent/15 text-foreground border border-accent/40 shadow-sm"
+        >
+          {p}
+        </span>
+      ))}
+    </div>
   );
 }
 
