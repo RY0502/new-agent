@@ -7,7 +7,8 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-html, body {
+html,
+body {
   scroll-behavior: smooth;
   overscroll-behavior: none;
 }
@@ -48,6 +49,7 @@ html, body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 239 15% 8%;
     --foreground: 239 10% 95%;
@@ -88,6 +90,7 @@ html, body {
   * {
     border-color: hsl(var(--border));
   }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -117,10 +120,10 @@ html, body {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, 
-    hsl(239, 84%, 67%), 
-    hsl(235, 86%, 65%),
-    hsl(187, 92%, 69%));
+  background: linear-gradient(135deg,
+      hsl(239, 84%, 67%),
+      hsl(235, 86%, 65%),
+      hsl(187, 92%, 69%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -133,24 +136,30 @@ body .copilotKitChat {
 }
 
 @media (max-width: 640px) {
+
   /* Make the chat fill the viewport on small screens */
   .copilotKitChat {
     width: 100% !important;
     max-width: 100% !important;
-    height: calc(100dvh - 120px) !important; /* tighter header/footer on mobile */
+    height: calc(100dvh - 120px) !important;
+    /* tighter header/footer on mobile */
     margin: 0 !important;
     border-radius: 0 !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  html, body {
+
+  html,
+  body {
     overflow: hidden !important;
     height: 100%;
   }
+
   main {
     padding: 0.75rem !important;
   }
+
   header {
     margin-bottom: 0.75rem !important;
   }

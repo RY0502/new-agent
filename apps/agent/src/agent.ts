@@ -4,8 +4,8 @@
  */
 
 import { RunnableConfig } from "@langchain/core/runnables";
-import { AIMessage, SystemMessage, HumanMessage } from "@langchain/core/messages";
-import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { MemorySaver, StateGraph } from "@langchain/langgraph";
 import { CopilotKitStateAnnotation } from "@copilotkit/sdk-js/langchain";
 import { copilotKitEmitMessage, copilotKitEmitState } from "@copilotkit/sdk-js/langchain";
 import { Annotation } from "@langchain/langgraph";
@@ -37,16 +37,123 @@ function getLastUserText(messages: any[]): string {
   return "";
 }
 
-// 1. Define our agent state, which includes CopilotKit state to
-//    provide actions to the state.
+// ─── A2UI Component Definitions ──────────────────────────────────────────────
+// Each component definition includes a schema and an example.
+// Tags are named unique (e.g., <a2-table>) to avoid collision.
+
+const COMPONENT_DEFINITIONS: Record<string, { tag: string; schema: string; example: string }> = {
+  result: {
+    tag: "a2-result",
+    schema: [
+      "<a2-result> — wraps plain-text or markdown content.",
+      "No special attributes. Content goes directly between the opening and closing tags.",
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      "<a2-result>",
+      "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France.",
+      "It was constructed from 1887 to 1889 as the centrepiece of the 1889 World's Fair.",
+      "</a2-result>",
+    ].join("\n"),
+  },
+  list: {
+    tag: "a2-list",
+    schema: [
+      "<a2-list> — renders a bulleted / numbered list.",
+      'Inner content MUST be a valid JSON array of strings.',
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      '<a2-list>["Lionel Messi has 3 sons", "Thiago Messi (born 2012)", "Mateo Messi (born 2015)", "Ciro Messi (born 2018)"]</a2-list>',
+    ].join("\n"),
+  },
+  table: {
+    tag: "a2-table",
+    schema: [
+      "<a2-table> — renders a data table.",
+      'Inner content MUST be a valid JSON object: { "columns": string[], "rows": any[][] }.',
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      `<a2-table>{"columns":["City","Temp","Weather"],"rows":[["NYC","22°C","Sunny"],["LON","15°C","Rainy"]]}</a2-table>`,
+    ].join("\n"),
+  },
+  tabs: {
+    tag: "a2-tabs",
+    schema: [
+      "<a2-tabs> — renders a tabbed view.",
+      'Inner content MUST be a valid JSON object: { "tabItems": [{ "title": string, "content": string }] }.',
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      '<a2-tabs>{"tabItems":[{"title":"React","content":"React is a JavaScript library for building user interfaces, maintained by Meta."},{"title":"Angular","content":"Angular is a TypeScript-based framework maintained by Google."}]}</a2-tabs>',
+    ].join("\n"),
+  },
+  code: {
+    tag: "a2-code",
+    schema: [
+      '<a2-code language="LANG"> — renders a syntax-highlighted code block.',
+      "Inner content: raw source code ONLY. Do NOT wrap in markdown fences.",
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      '<a2-code language="python">def fibonacci(n):',
+      "    a, b = 0, 1",
+      "    for _ in range(n):",
+      "        yield a",
+      "        a, b = b, a + b</a2-code>",
+    ].join("\n"),
+  },
+};
+
+/**
+ * Builds a complete A2UI system-prompt section for the selected component.
+ */
+function buildA2UISystemPrompt(component: string, extraSchema: string): string {
+  const def = COMPONENT_DEFINITIONS[component] || COMPONENT_DEFINITIONS["result"];
+  const tagName = def.tag;
+  return [
+    "Your response MUST use A2UI component markup. Output ONLY valid A2UI tags — no extra prose outside the tags, no markdown fences.",
+    "",
+    "--- SELECTED A2UI COMPONENT ---",
+    "Component Tag: <" + tagName + ">",
+    def.schema,
+    "",
+    "--- EXAMPLE OUTPUT ---",
+    def.example,
+    "--- END EXAMPLE ---",
+    "",
+    "Rules:",
+    "1. Start with <section>Answer</section>.",
+    "2. Then output EXACTLY ONE <" + tagName + "> tag with the structured content.",
+    "3. For JSON-based components (list, table, tabs), do NOT include any text OR newlines between the start tag and the JSON object/array.",
+    "4. Do NOT output any text outside of the A2UI tags.",
+    "5. Do NOT use markdown code fences anywhere in your response.",
+    extraSchema ? "\n" + extraSchema : "",
+  ].join("\n");
+}
+
+// 1. Define our agent state
 const AgentStateAnnotation = Annotation.Root({
-  ...CopilotKitStateAnnotation.spec, // CopilotKit state annotation already includes messages, as well as frontend tools
+  ...CopilotKitStateAnnotation.spec,
   proverbs: Annotation<string[]>,
   needsSearch: Annotation<boolean>({
     value: (left, right) => (typeof right === "boolean" ? right : left),
     default: () => false,
   }),
   appEvent: Annotation<string>(),
+  selectedUI: Annotation<string>({
+    value: (left, right) => (typeof right === "string" ? right : left),
+    default: () => "",
+  }),
+  selectedUISchema: Annotation<string>({
+    value: (left, right) => (typeof right === "string" ? right : left),
+    default: () => "",
+  }),
+  logs: Annotation<string[]>({
+    value: (left, right) => right,
+    default: () => [],
+  }),
 });
 
 // 2. Define the type for our agent state
@@ -59,8 +166,11 @@ const mistralChat = async (
   const { ChatMistralAI } = await import("@langchain/mistralai");
   const mistral = new ChatMistralAI({ model: "mistral-large-latest" });
   const lastUser = getLastUserText(state.messages as any);
+  const sel = (state.selectedUI || "result").toLowerCase();
+  const a2uiPrompt = buildA2UISystemPrompt(sel, state.selectedUISchema || "");
   const reply = await mistral.invoke([
-    ["system", "You are a helpful assistant that can answer the given user query with the best of your knowledge"],
+    ["system", "You are a helpful assistant that can answer the given user query with the best of your knowledge."],
+    ["system", a2uiPrompt],
     ["user", lastUser],
   ] as any);
   let text = "";
@@ -70,41 +180,60 @@ const mistralChat = async (
     const tp = (reply.content as any[]).find((p) => p?.type === "text");
     text = tp?.text ?? "";
   }
-  return {
-    messages: [new AIMessage(text)],
-  };
+
+  // Prepend persistent logs wrapped in a single status accordion
+  const finalLogs = state.logs || [];
+  if (finalLogs.length > 0) {
+    text = `<status>\n${finalLogs.join("\n")}\n</status>\n\n${text}`;
+  }
+
+  return { messages: [new AIMessage(text)] };
 };
+
+let keyToggle = true;
 
 const geminiSearch = async (
   state: typeof AgentStateAnnotation.State,
   _config: RunnableConfig,
 ): Promise<typeof AgentStateAnnotation.Update> => {
   const { ChatGoogle } = await import("@langchain/google");
-  const llm = new ChatGoogle("gemini-2.5-flash")
-  .bindTools([
-    {
-      googleSearch: {},
-    },
-  ]);
-  const lastUser =
-    getLastUserText(state.messages as any);
+
+  const key1 = process.env.GOOGLE_API_KEY;
+  const key2 = process.env.ANOTHER_GOOGLE_API_KEY;
+  const apiKey = keyToggle ? key1 : (key2 || key1);
+  keyToggle = !keyToggle;
+
+  const llm = new ChatGoogle({
+    model: "gemini-2.5-flash",
+    apiKey: apiKey,
+  });
+  const lastUser = getLastUserText(state.messages as any);
+  const sel = (state.selectedUI || "result").toLowerCase();
+  const a2uiPrompt = buildA2UISystemPrompt(sel, state.selectedUISchema || "");
   const reply = await llm.invoke([
     ["system", "Use search to fetch current information."],
+    ["system", a2uiPrompt],
     ["user", lastUser],
   ] as any);
-   return {
-    messages: [new AIMessage(reply.text)],
-  };
+  let text = String(reply.content || reply.text || "");
+
+  // Prepend persistent logs wrapped in a single status accordion
+  const finalLogs = state.logs || [];
+  if (finalLogs.length > 0) {
+    text = `<status>\n${finalLogs.join("\n")}\n</status>\n\n${text}`;
+  }
+
+  return { messages: [new AIMessage(text)] };
 };
 
 const appData = async (
   _config: RunnableConfig
 ): Promise<typeof AgentStateAnnotation.Update> => {
   const appEvent = "Classifying search intent";
-  await copilotKitEmitMessage(_config, appEvent);
+  await copilotKitEmitMessage(_config, `<status>${appEvent}</status>`);
   return {
     appEvent,
-    messages: [new AIMessage(`<status>${appEvent}</status>`)],
+    logs: [appEvent],
   };
 }
 
@@ -113,12 +242,13 @@ const groqClassify = async (
   _config: RunnableConfig
 ): Promise<typeof AgentStateAnnotation.Update> => {
   const { ChatGroq } = await import("@langchain/groq");
-  const groq = new ChatGroq({ 
+  const groq = new ChatGroq({
     model: "openai/gpt-oss-120b",
     temperature: 0,
-    maxRetries: 2});
+    maxRetries: 2
+  });
   const res = await groq.invoke([
-    ["system", `Classify if the query requires real-time web data (SEARCH) or can be answered by training data (NO_SEARCH). Output ONLY JSON: {"needs_search": boolean, "reason": "string"}`],
+    ["system", 'Classify if the query requires real-time web data (SEARCH) or can be answered by training data (NO_SEARCH). Output ONLY JSON: {"needs_search": boolean, "reason": "string"}'],
     ["user", getLastUserText(state.messages as any)],
   ] as any);
   let needsSearch = false;
@@ -137,50 +267,97 @@ const groqClassify = async (
   } catch {
     needsSearch = false;
   }
-  const statusMsg = needsSearch ? "Routing: SEARCH" : "Routing: NO_SEARCH";
-  await copilotKitEmitMessage(_config, statusMsg);
-  await copilotKitEmitState(_config, { needsSearch, reason });
-  const details = typeof reason === "string" && reason.trim().length > 0 ? `Reason: ${reason}` : undefined;
+  const rawMsg = needsSearch ? "Routing: SEARCH" : "Routing: NO_SEARCH";
+  await copilotKitEmitMessage(_config, `<status>${rawMsg}</status>`);
   return {
     needsSearch,
-    messages: [
-      new AIMessage(`<status>${statusMsg}${details ? `\n${details}` : ""}</status>`),
-    ],
+    logs: [...(state.logs || []), rawMsg],
   };
 };
 
-/**
- * Routing function: Determines whether to continue research or end the builder.
- * This function decides if the gathered information is satisfactory or if more research is needed.
- *
- * @param state - The current state of the research builder
- * @returns Either "callModel" to continue research or END to finish the builder
- */
+const groqUIDecider = async (
+  state: typeof AgentStateAnnotation.State,
+  _config: RunnableConfig
+): Promise<typeof AgentStateAnnotation.Update> => {
+  const { ChatGroq } = await import("@langchain/groq");
+  const groq = new ChatGroq({
+    model: "openai/gpt-oss-120b",
+    temperature: 0,
+    maxRetries: 2
+  });
+  const userText = getLastUserText(state.messages as any);
+  const startMsg = "Determining the display format";
+  await copilotKitEmitMessage(_config, `<status>${startMsg}</status>`);
+
+  const prompt = [
+    "You are a UI display selector. Choose the single best A2UI component for rendering the answer to the user query.",
+    'Allowed components: "tabs", "table", "list", "result", "code".',
+    "Selection rules:",
+    '- User explicitly asks for a "table" or "tabular format" -> "table"',
+    '- Comparison queries -> "tabs" (e.g., "react vs angular", "compare SAML and OAuth")',
+    '- Multi-attribute/statistics -> "table" (e.g., "Weather in Delhi today")',
+    '- Summarized, scannable bullet-like facts -> "list" (e.g., "Lionel Messi kids")',
+    '- General details or when unsure -> "result"',
+    '- Code output -> "code" (e.g., "write a Python function to ...")',
+    'Output ONLY JSON: {"component": "<one_of_allowed>", "reason": "<short why>"}.',
+    "Query: " + userText,
+  ].join("\n");
+  const res = await groq.invoke([
+    ["system", "Select the best single component according to the rules."],
+    ["user", prompt],
+  ] as any);
+  let component = "result";
+  try {
+    let contentText = "";
+    if (typeof res.content === "string") {
+      contentText = res.content;
+    } else if (Array.isArray(res.content)) {
+      const textPart = (res.content as any[]).find((p) => p?.type === "text");
+      contentText = textPart?.text ?? "";
+    }
+    const parsed = JSON.parse(contentText);
+    let cand = String(parsed.component || "result").toLowerCase();
+    if (cand === "tab") cand = "tabs";
+    if (["tabs", "table", "list", "result", "code"].includes(cand)) component = cand;
+  } catch { }
+
+  const def = COMPONENT_DEFINITIONS[component] || COMPONENT_DEFINITIONS["result"];
+  const selectedUISchema = [
+    "--- SELECTED A2UI COMPONENT ---",
+    "Component: <" + def.tag + ">",
+    def.schema,
+    "",
+    "--- EXAMPLE OUTPUT ---",
+    def.example,
+    "--- END ---",
+  ].join("\n");
+
+  const selectedMsg = "Selected **" + component + "** for rendering";
+  await copilotKitEmitMessage(_config, `<status>${selectedMsg}</status>`);
+
+  return {
+    selectedUI: component,
+    selectedUISchema,
+    logs: [...(state.logs || []), startMsg, selectedMsg],
+  };
+};
+
 export const route = (
   state: any,
 ): "__end__" | "geminiSearch" | "mistralChat" => {
   return state.needsSearch ? "geminiSearch" : "mistralChat";
 };
 
-
-// Finally, create the graph itself.
 const workflow = new StateGraph(AgentStateAnnotation)
-  // Add the nodes to do the work.
-  // Chaining the nodes together in this way
-  // updates the types of the StateGraph instance
-  // so you have static type checking when it comes time
-  // to add the edges.
   .addNode("appData", appData)
   .addNode("groqClassify", groqClassify)
+  .addNode("groqUIDecider", groqUIDecider)
   .addNode("mistralChat", mistralChat)
   .addNode("geminiSearch", geminiSearch)
-  // Regular edges mean "always transition to node B after node A is done"
-  // The "__start__" and "__end__" nodes are "virtual" nodes that are always present
-  // and represent the beginning and end of the builder.
   .addEdge("__start__", "appData")
   .addEdge("appData", "groqClassify")
-  // Conditional edges optionally route to different nodes (or end)
-  .addConditionalEdges("groqClassify", route)
+  .addEdge("groqClassify", "groqUIDecider")
+  .addConditionalEdges("groqUIDecider", route)
   .addEdge("mistralChat", "__end__")
   .addEdge("geminiSearch", "__end__");
 

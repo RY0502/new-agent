@@ -59,7 +59,7 @@ export default function UserStatus() {
       try {
         await account.deleteSession("current");
         setUser(null);
-      } catch {}
+      } catch { }
     });
   };
 

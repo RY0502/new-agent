@@ -7,27 +7,154 @@ import { Sparkles, Send, StopCircle, ThumbsUp, ThumbsDown, Upload, X, Copy } fro
 import { cn } from "@/lib/utils";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useEffect, useRef, useState } from "react";
+import "@/a2ui/register";
 
-function StatusTag({ children }: { children?: React.ReactNode }) {
-  const content =
-    typeof children === "string"
-      ? children
-      : Array.isArray(children)
-      ? children.join("")
-      : (children as any)?.toString?.() ?? "";
-  const parts = String(content).split(/\r?\n+/).map((p) => p.trim()).filter(Boolean);
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'a2-status': any;
+      'a2-section': any;
+      'a2-result': any;
+      'a2-progress': any;
+      'a2-list': any;
+      'a2-table': any;
+      'a2-tabs': any;
+      'a2-code': any;
+      'a2-action': any;
+      'a2-row': any;
+      'a2-image': any;
+      'a2-column': any;
+      'a2-text': any;
+      'a2-icon': any;
+      'a2-divider': any;
+      'a2-button': any;
+      'a2-textfield': any;
+      'a2-checkbox': any;
+      'a2-card': any;
+      'a2-modal': any;
+      'a2ui-status': any;
+      'a2ui-section': any;
+      'a2ui-result': any;
+      'a2ui-progress': any;
+      'a2ui-list': any;
+      'a2ui-table': any;
+      'a2ui-tabs': any;
+      'a2ui-code': any;
+    }
+  }
+}
+
+/**
+ * Robustly extracts the text content from a React node, 
+ * recursing through children if necessary.
+ * Also strips markdown backticks and common LLM prose artifacts.
+ */
+function getNodeText(n: React.ReactNode): string {
+  if (n == null) return "";
+  if (typeof n === "string" || typeof n === "number") return String(n);
+  if (Array.isArray(n)) return n.map((c) => getNodeText(c)).join("");
+  if (typeof n === "object") {
+    const node = n as any;
+    if (node.props?.children) return getNodeText(node.props.children);
+    if (node.type === "br") return "\n";
+  }
+  return "";
+}
+
+function LoadingBar({ active }: { active: boolean }) {
+  if (!active) return null;
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {parts.map((p, i) => (
-        <span
-          key={`${p}-${i}`}
-          className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] md:text-xs bg-accent/15 text-foreground border border-accent/40 shadow-sm"
-        >
-          {p}
-        </span>
-      ))}
+    <div className="sticky top-0 z-40 w-full mb-2">
+      <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden">
+        <div className="h-full w-1/3 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full animate-progress" />
+      </div>
     </div>
   );
+}
+
+/**
+ * Inline 'Thinking' indicator that appears at the bottom of the chat list.
+ */
+function ThinkingIndicator({ active }: { active: boolean }) {
+  if (!active) return null;
+  return (
+    <div className="flex items-center space-x-2 px-4 py-3 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex space-x-1.5 items-center bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-2xl px-4 py-2.5 shadow-sm">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500/80 dark:text-indigo-400/80 mr-1">Thinking</span>
+        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s]" />
+        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.15s]" />
+        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.3s]" />
+      </div>
+    </div>
+  );
+}
+
+// ─── A2UI Tag Bridge Renderers ─────────────────────────────────────────────
+
+function StatusTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  return <a2-status text={text} />;
+}
+function SectionTag({ children }: { children?: React.ReactNode }) {
+  return <a2-section>{children}</a2-section>;
+}
+function ResultTag({ children }: { children?: React.ReactNode }) {
+  return <a2-result>{children}</a2-result>;
+}
+function ProgressTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  return <a2-progress data={text} />;
+}
+function ActionTag({ children }: { children?: React.ReactNode }) {
+  return <a2-action>{children}</a2-action>;
+}
+function RowTag({ children }: { children?: React.ReactNode }) {
+  return <a2-row>{children}</a2-row>;
+}
+function ListTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  return <a2-list data={text}>{children}</a2-list>;
+}
+function TableTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  return <a2-table data={text}>{children}</a2-table>;
+}
+function ImageTag({ children }: { children?: React.ReactNode }) {
+  return <a2-image>{children}</a2-image>;
+}
+function CodeTag({ children, ...props }: any) {
+  return <a2-code language={props?.language}>{children}</a2-code>;
+}
+function ColumnTag({ children }: { children?: React.ReactNode }) {
+  return <a2-column>{children}</a2-column>;
+}
+function TextTag({ children }: { children?: React.ReactNode }) {
+  return <a2-text>{children}</a2-text>;
+}
+function IconTag({ children }: { children?: React.ReactNode }) {
+  return <a2-icon>{children}</a2-icon>;
+}
+function DividerTag() {
+  return <a2-divider />;
+}
+function ButtonTag({ children }: { children?: React.ReactNode }) {
+  return <a2-button>{children}</a2-button>;
+}
+function TextFieldTag({ children }: { children?: React.ReactNode }) {
+  return <a2-textfield>{children}</a2-textfield>;
+}
+function CheckBoxTag({ children }: { children?: React.ReactNode }) {
+  return <a2-checkbox>{children}</a2-checkbox>;
+}
+function CardTag({ children }: { children?: React.ReactNode }) {
+  return <a2-card>{children}</a2-card>;
+}
+function ModalTag({ children }: { children?: React.ReactNode }) {
+  return <a2-modal>{children}</a2-modal>;
+}
+function TabsTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  return <a2-tabs data={text}>{children}</a2-tabs>;
 }
 
 export default function Home() {
@@ -38,7 +165,7 @@ export default function Home() {
     if (!streaming) return;
     const id = setInterval(() => {
       endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 300);
+    }, 400);
     return () => clearInterval(id);
   }, [streaming]);
   return (
@@ -62,9 +189,33 @@ export default function Home() {
           <div className={cn("w-full h-full mt-2 md:mt-4")}>
             <div className="h-full flex flex-col">
               <div className="flex-1 min-h-0">
+                {/* Global loading bar remains at top */}
+                <LoadingBar active={streaming} />
+
                 <CopilotChat
                   className="w-full h-full"
-                  markdownTagRenderers={{ status: StatusTag }}
+                  markdownTagRenderers={{
+                    // Main layout tags
+                    section: SectionTag,
+
+                    // New unique A2UI tags
+                    "a2-status": StatusTag,
+                    "a2-section": SectionTag,
+                    "a2-result": ResultTag,
+                    "a2-progress": ProgressTag,
+                    "a2-list": ListTag,
+                    "a2-table": TableTag,
+                    "a2-tabs": TabsTag,
+                    "a2-code": CodeTag,
+
+                    // Legacy/Fallback mapping
+                    status: StatusTag, wow: StatusTag, result: ResultTag,
+                    progress: ProgressTag, action: ActionTag, row: RowTag, list: ListTag,
+                    table: TableTag, image: ImageTag, code: CodeTag, column: ColumnTag,
+                    tab: TabsTag, text: TextTag, icon: IconTag, divider: DividerTag,
+                    button: ButtonTag, textfield: TextFieldTag, checkbox: CheckBoxTag,
+                    card: CardTag, modal: ModalTag, tabs: TabsTag,
+                  }}
                   onInProgress={(p) => {
                     setStreaming(p);
                     if (p) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -81,16 +232,8 @@ export default function Home() {
                     sendIcon: <Send className="h-5 w-5" />,
                     activityIcon: (
                       <div className="inline-flex items-center gap-1">
-                        <span className="copilotKitActivityDot" />
-                        <span className="copilotKitActivityDot" style={{ animationDelay: "0.15s" }} />
-                        <span className="copilotKitActivityDot" style={{ animationDelay: "0.3s" }} />
-                      </div>
-                    ),
-                    spinnerIcon: (
-                      <div className="inline-flex items-center gap-1">
-                        <span className="copilotKitActivityDot" />
-                        <span className="copilotKitActivityDot" style={{ animationDelay: "0.15s" }} />
-                        <span className="copilotKitActivityDot" style={{ animationDelay: "0.3s" }} />
+                        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s]" />
+                        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.15s]" />
                       </div>
                     ),
                     stopIcon: <StopCircle className="h-5 w-5" />,
@@ -102,17 +245,19 @@ export default function Home() {
                   }}
                   imageUploadsEnabled={true}
                 />
+
+                {/* Inline indicator at the bottom of the list */}
+                <ThinkingIndicator active={streaming} />
                 <div ref={endRef} />
+
                 {!loading && !loggedIn && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
                     <div className="glass rounded-2xl p-6 shadow-lg text-center">
                       <div className="text-lg font-semibold mb-2">Sign in to continue</div>
-                      <div className="text-sm text-muted-foreground mb-4">
-                        Please sign in before sending a message.
-                      </div>
+                      <div className="text-sm text-muted-foreground mb-4">Please sign in before sending a message.</div>
                       <Button
                         variant="default"
-                        className="rounded-full h-10 px-5 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-cyan-600 active:scale-[0.98] transition-all"
+                        className="rounded-full h-10 px-5 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all"
                         onClick={login}
                       >
                         Sign In
