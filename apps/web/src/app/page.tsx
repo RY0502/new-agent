@@ -78,12 +78,15 @@ function LoadingBar({ active }: { active: boolean }) {
 function ThinkingIndicator({ active }: { active: boolean }) {
   if (!active) return null;
   return (
-    <div className="flex items-center space-x-2 px-4 py-3 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex space-x-1.5 items-center bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-2xl px-4 py-2.5 shadow-sm">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500/80 dark:text-indigo-400/80 mr-1">Thinking</span>
-        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s]" />
-        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.15s]" />
-        <div className="h-1.5 w-1.5 bg-indigo-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.3s]" />
+    <div className="flex items-center space-x-2 px-6 py-4 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex space-x-2 items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-[20px] px-5 py-3 shadow-2xl">
+        <div className="h-2 w-2 bg-indigo-400 rounded-full animate-pulse mr-2" />
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-white">Thinking</span>
+        <div className="flex gap-1 ml-4">
+          <div className="h-1 w-1 bg-white/40 rounded-full animate-bounce [animation-duration:0.8s]" />
+          <div className="h-1 w-1 bg-white/40 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.15s]" />
+          <div className="h-1 w-1 bg-white/40 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.3s]" />
+        </div>
       </div>
     </div>
   );
@@ -93,67 +96,87 @@ function ThinkingIndicator({ active }: { active: boolean }) {
 
 function StatusTag({ children }: { children?: React.ReactNode }) {
   const text = getNodeText(children);
+// @ts-ignore
   return <a2-status text={text} />;
 }
 function SectionTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-section>{children}</a2-section>;
 }
 function ResultTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-result>{children}</a2-result>;
 }
 function ProgressTag({ children }: { children?: React.ReactNode }) {
   const text = getNodeText(children);
+  // @ts-ignore
   return <a2-progress data={text} />;
 }
 function ActionTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-action>{children}</a2-action>;
 }
 function RowTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-row>{children}</a2-row>;
 }
 function ListTag({ children }: { children?: React.ReactNode }) {
   const text = getNodeText(children);
+  // @ts-ignore
   return <a2-list data={text}>{children}</a2-list>;
 }
 function TableTag({ children }: { children?: React.ReactNode }) {
   const text = getNodeText(children);
+  // @ts-ignore
   return <a2-table data={text}>{children}</a2-table>;
 }
 function ImageTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-image>{children}</a2-image>;
 }
 function CodeTag({ children, ...props }: any) {
+  // @ts-ignore
   return <a2-code language={props?.language}>{children}</a2-code>;
 }
 function ColumnTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-column>{children}</a2-column>;
 }
 function TextTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-text>{children}</a2-text>;
 }
 function IconTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-icon>{children}</a2-icon>;
 }
 function DividerTag() {
+  // @ts-ignore
   return <a2-divider />;
 }
 function ButtonTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-button>{children}</a2-button>;
 }
 function TextFieldTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-textfield>{children}</a2-textfield>;
 }
 function CheckBoxTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-checkbox>{children}</a2-checkbox>;
 }
 function CardTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-card>{children}</a2-card>;
 }
 function ModalTag({ children }: { children?: React.ReactNode }) {
+  // @ts-ignore
   return <a2-modal>{children}</a2-modal>;
 }
 function TabsTag({ children }: { children?: React.ReactNode }) {
   const text = getNodeText(children);
+  // @ts-ignore
   return <a2-tabs data={text}>{children}</a2-tabs>;
 }
 
@@ -171,29 +194,36 @@ export default function Home() {
   return (
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       <div className="aurora-bg" />
-      <div className="fixed inset-0 bg-gradient-to-br from-indigo-50/50 via-cyan-50/30 to-violet-50/50 dark:from-indigo-950/20 dark:via-cyan-950/10 dark:to-violet-950/20 pointer-events-none" />
-      <main className="relative z-10 flex-1 flex flex-col p-4 md:p-6 pb-2">
-        <header className="flex items-center justify-between w-full mb-8 md:mb-12">
-          <div className="flex items-center space-x-3 group">
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.05),transparent_50%)] pointer-events-none" />
+      <main className="relative z-10 flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <header className="flex items-center justify-between w-full mb-10">
+          <div className="flex items-center space-x-4 group cursor-default">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-              <Sparkles className="relative h-8 w-8 md:h-10 md:w-10 text-indigo-600 dark:text-indigo-400" />
+              <div className="absolute inset-0 bg-indigo-500 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
+              <div className="relative h-12 w-12 flex items-center justify-center rounded-2xl glass border-white/10 group-hover:border-white/20 transition-all duration-300">
+                <Sparkles className="h-6 w-6 text-indigo-400" />
+              </div>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold font-headline gradient-text">Definitive AI</h1>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight text-white">
+                Definitive<span className="gradient-text">.AI</span>
+              </h1>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/30 ml-0.5">Next-Gen Agentic Interface</p>
+            </div>
           </div>
-          <div className="absolute right-4 top-4 md:right-6 md:top-6 z-20">
+          <div className="z-20">
             <UserStatus />
           </div>
         </header>
-        <div className={cn("flex-1 flex flex-col items-stretch justify-stretch")}>
-          <div className={cn("w-full h-full mt-2 md:mt-4")}>
-            <div className="h-full flex flex-col">
-              <div className="flex-1 min-h-0">
-                {/* Global loading bar remains at top */}
-                <LoadingBar active={streaming} />
-
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          <div className="absolute inset-0 bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none" />
+          <div className="flex-1 glass rounded-[32px] border-white/10 overflow-hidden shadow-2xl relative flex flex-col">
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="flex-1 min-h-0 p-1 flex flex-col relative">
+              <LoadingBar active={streaming} />
+              <div className="flex-1 min-h-0 relative">
                 <CopilotChat
-                  className="w-full h-full"
+                  className="premium-chat-customization"
                   markdownTagRenderers={{
                     // Main layout tags
                     section: SectionTag,
@@ -245,38 +275,41 @@ export default function Home() {
                   }}
                   imageUploadsEnabled={true}
                 />
-
-                {/* Inline indicator at the bottom of the list */}
-                <ThinkingIndicator active={streaming} />
-                <div ref={endRef} />
-
-                {!loading && !loggedIn && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                    <div className="glass rounded-2xl p-6 shadow-lg text-center">
-                      <div className="text-lg font-semibold mb-2">Sign in to continue</div>
-                      <div className="text-sm text-muted-foreground mb-4">Please sign in before sending a message.</div>
-                      <Button
-                        variant="default"
-                        className="rounded-full h-10 px-5 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all"
-                        onClick={login}
-                      >
-                        Sign In
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
+
+              {/* Inline indicator at the bottom of the list */}
+              <ThinkingIndicator active={streaming} />
+              <div ref={endRef} />
+
+              {!loading && !loggedIn && (
+                <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-md">
+                  <div className="glass rounded-[24px] p-8 border-white/20 shadow-2xl text-center max-w-sm mx-4 animate-in zoom-in-95 duration-300">
+                    <div className="h-16 w-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Sparkles className="h-8 w-8 text-indigo-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-3 text-white">Unlock Intelligence</h2>
+                    <p className="text-sm text-white/60 mb-8 leading-relaxed">Join the definitive agentic experience. Sign in to start collaborating with your assistant.</p>
+                    <Button
+                      variant="premium"
+                      size="lg"
+                      className="w-full rounded-full font-bold tracking-tight shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                      onClick={login}
+                    >
+                      Get Started
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
-      <footer className="relative z-10 w-full py-3 md:py-6 px-4 mt-auto flex items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <div className="glass inline-flex items-center gap-2 rounded-full px-5 py-3 shadow-md border">
-          <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-          <span className="text-xs md:text-sm text-muted-foreground/80">Crafted with</span>
-          <span className="mx-1.5 text-indigo-500 dark:text-indigo-400">✨</span>
-          <span className="text-xs md:text-sm text-muted-foreground/80">by</span>
-          <span className="ml-1.5 gradient-text font-semibold">RYaxn</span>
+      <footer className="relative z-10 w-full py-8 px-4 mt-auto flex items-center justify-center pb-[env(safe-area-inset-bottom)]">
+        <div className="glass inline-flex items-center gap-3 rounded-full px-6 py-3 shadow-xl border-white/10 hover:border-white/20 transition-all duration-500 group">
+          <div className="h-2 w-2 bg-indigo-500 rounded-full animate-pulse group-hover:scale-125 transition-transform" />
+          <span className="text-xs font-bold uppercase tracking-widest text-white/40">Definitive System v2.0</span>
+          <div className="h-4 w-px bg-white/10 mx-1" />
+          <span className="text-xs font-bold text-white/60">Crafted by <span className="gradient-text font-black">RYaxn</span></span>
         </div>
       </footer>
     </div>

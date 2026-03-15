@@ -70,9 +70,9 @@ export default function UserStatus() {
   if (!user) {
     return (
       <Button
-        variant="default"
+        variant="premium"
         onClick={login}
-        className="rounded-full h-10 px-5 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-cyan-600 active:scale-[0.98] transition-all"
+        className="rounded-full px-6 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
       >
         <LogIn className="h-4 w-4 mr-2" />
         Sign In
@@ -83,22 +83,23 @@ export default function UserStatus() {
   const initials = (user.name || user.email || "U").slice(0, 2).toUpperCase();
 
   return (
-    <div className="glass rounded-full px-3 py-2 border shadow-sm flex items-center gap-3">
-      <Avatar className="h-9 w-9 ring-1 ring-white/60 dark:ring-white/20">
+    <div className="glass rounded-full px-3 py-1.5 border-white/10 shadow-lg flex items-center gap-3 hover:border-white/20 transition-all duration-300">
+      <Avatar className="h-8 w-8 ring-2 ring-indigo-500/30">
         <AvatarImage alt={user.name || user.email || "User"} />
-        <AvatarFallback>{initials}</AvatarFallback>
+        <AvatarFallback className="bg-indigo-500/10 text-indigo-400 text-xs">{initials}</AvatarFallback>
       </Avatar>
-      <div className="hidden md:flex md:flex-col">
-        <div className="text-sm font-medium">{user.name || user.email}</div>
-        <div className="text-xs text-muted-foreground">Signed in</div>
+      <div className="hidden md:flex md:flex-col leading-tight">
+        <div className="text-[13px] font-semibold text-white/90">{user.name || user.email}</div>
+        <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold">Authenticated</div>
       </div>
       <Button
-        variant="ghost"
+        variant="glass"
+        size="sm"
         onClick={logout}
-        className="rounded-full h-9 px-3 border hover:bg-background/60 text-muted-foreground hover:text-foreground transition-colors"
+        className="rounded-full h-8 px-3 border-white/5 hover:bg-white/5 text-white/60 hover:text-white transition-all"
       >
-        <LogOut className="h-4 w-4 mr-1.5" />
-        Sign Out
+        <LogOut className="h-3.5 w-3.5 mr-1.5" />
+        <span className="text-xs">Sign Out</span>
       </Button>
     </div>
   );
