@@ -189,6 +189,16 @@ export default function Home() {
   const { loggedIn, loading, login } = useAuthStatus();
   const endRef = useRef<HTMLDivElement | null>(null);
   const [streaming, setStreaming] = useState(false);
+  const [clientSkin, setClientSkin] = useState('indigo');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const client = params.get('client');
+      if (client) setClientSkin(client);
+    }
+  }, []);
+
   useEffect(() => {
     if (!streaming) return;
     const id = setInterval(() => {
@@ -196,8 +206,9 @@ export default function Home() {
     }, 400);
     return () => clearInterval(id);
   }, [streaming]);
+
   return (
-    <div className="relative flex flex-col min-h-screen overflow-hidden">
+    <div className={`client-${clientSkin} relative flex flex-col h-[100dvh] w-full overflow-hidden`}>
       <div className="aurora-bg" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.05),transparent_50%)] pointer-events-none" />
       <main className="relative z-10 flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full">

@@ -9,7 +9,10 @@ body {
 
 html,
 body {
-  scroll-behavior: smooth;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
   overscroll-behavior: none;
 }
 
@@ -17,24 +20,56 @@ body {
   :root {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    /* ... existing shadcn variables ... */
     --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 263.4 70% 50.4%;
     --radius: 0.75rem;
+
+    /* A2UI Design Tokens (Defaults) */
+    --a2-primary: #a5b4fc;
+    --a2-secondary: #9333ea;
+    --a2-tertiary: #ec4899;
+    --a2-accent: #4f46e5;
+    --a2-bg-glass: rgba(255, 255, 255, 0.05);
+    --a2-card-bg: rgba(15, 23, 42, 0.6);
+    --a2-card-border: rgba(255, 255, 255, 0.08);
+    --a2-text-main: #f1f5f9;
+    --a2-text-title: #f8fafc;
+    --a2-text-muted: #94a3b8;
+    --a2-radius-lg: 32px;
+    --a2-radius-md: 16px;
+    --a2-radius-sm: 12px;
+  }
+
+  /* Client: Indigo (Default Premium) */
+  .client-indigo {
+    --a2-primary: #a5b4fc;
+    --a2-accent: #6366f1;
+    --a2-radius-lg: 32px;
+  }
+
+  /* Client: Emerald (Modern Eco) */
+  .client-emerald {
+    --a2-primary: #6ee7b7;
+    --a2-secondary: #10b981;
+    --a2-accent: #059669;
+    --a2-radius-lg: 12px;
+    --a2-radius-md: 8px;
+  }
+
+  /* Client: Retro (High Contrast) */
+  .client-retro {
+    --a2-primary: #00ff00;
+    --a2-secondary: #000000;
+    --a2-tertiary: #ff00ff;
+    --a2-accent: #00ff00;
+    --a2-bg-glass: #000000;
+    --a2-card-bg: #000000;
+    --a2-card-border: #00ff00;
+    --a2-text-main: #00ff00;
+    --a2-text-title: #00ff00;
+    --a2-radius-lg: 0px;
+    --a2-radius-md: 0px;
+    --a2-radius-sm: 0px;
   }
 }
 
@@ -100,11 +135,11 @@ body .copilotKitChat {
 
 /* CopilotKit Premium Overrides */
 .premium-chat-customization {
-  --copilot-kit-primary-color: #6366f1 !important;
-  --copilot-kit-contrast-color: #ffffff !important;
+  --copilot-kit-primary-color: var(--a2-accent, #6366f1) !important;
+  --copilot-kit-contrast-color: var(--a2-text-title, #ffffff) !important;
   --copilot-kit-background-color: transparent !important;
-  --copilot-kit-secondary-background-color: rgba(255, 255, 255, 0.03) !important;
-  --copilot-kit-border-color: rgba(255, 255, 255, 0.1) !important;
+  --copilot-kit-secondary-background-color: var(--a2-bg-glass, rgba(255, 255, 255, 0.03)) !important;
+  --copilot-kit-border-color: var(--a2-card-border, rgba(255, 255, 255, 0.1)) !important;
   height: 100% !important;
   width: 100% !important;
 }
@@ -116,23 +151,23 @@ body .copilotKitChat {
 }
 
 .premium-chat-customization .copilotKitMessage {
-  border-radius: 20px !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: var(--a2-radius-md, 20px) !important;
+  border: 1px solid var(--a2-card-border, rgba(255, 255, 255, 0.05)) !important;
   transition: all 0.3s ease !important;
-  color: #ffffff !important;
+  color: var(--a2-text-main, #ffffff) !important;
 }
 
 .premium-chat-customization .copilotKitMessage--user {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)) !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
+  background: linear-gradient(135deg, var(--a2-accent, rgba(99, 102, 241, 0.2)), var(--a2-secondary, rgba(168, 85, 247, 0.2))) !important;
+  border-color: var(--a2-accent, rgba(99, 102, 241, 0.3)) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
   color: #ffffff !important;
 }
 
 .premium-chat-customization .copilotKitMessage--assistant {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: var(--a2-bg-glass, rgba(255, 255, 255, 0.05)) !important;
   backdrop-filter: blur(8px) !important;
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--a2-text-main, rgba(255, 255, 255, 0.9)) !important;
   white-space: pre-wrap !important;
 }
 
@@ -152,9 +187,9 @@ body .copilotKitChat {
   display: inline-block;
   width: 8px;
   height: 8px;
-  background: #6366f1;
+  background: var(--a2-primary, #6366f1);
   border-radius: 50%;
-  box-shadow: 0 0 10px #6366f1;
+  box-shadow: 0 0 10px var(--a2-primary, #6366f1);
 }
 
 .premium-chat-customization .copilotKitInput {
