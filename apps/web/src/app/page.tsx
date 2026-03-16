@@ -179,6 +179,11 @@ function TabsTag({ children }: { children?: React.ReactNode }) {
   // @ts-ignore
   return <a2-tabs data={text}>{children}</a2-tabs>;
 }
+function VideoTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  // @ts-ignore
+  return <a2-video data={text}>{children}</a2-video>;
+}
 
 export default function Home() {
   const { loggedIn, loading, login } = useAuthStatus();

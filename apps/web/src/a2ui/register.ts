@@ -15,17 +15,30 @@ function safeParseJSON(text: string) {
 
   let cleaned = unescaped.replace(/[\u200b-\u200d\ufeff]/g, '').trim();
 
-  // Sniff for JSON block
+  // Sniff for JSON block by finding first brace/bracket
   const firstBrace = cleaned.indexOf("{");
   const firstBracket = cleaned.indexOf("[");
   const start = (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) ? firstBrace : firstBracket;
+
+  if (start === -1) {
+    try { return JSON.parse(cleaned); } catch (e) { return null; }
+  }
+
+  // Find the last possible JSON end character
   const lastBrace = cleaned.lastIndexOf("}");
   const lastBracket = cleaned.lastIndexOf("]");
-  const end = (lastBrace !== -1 && (lastBracket === -1 || lastBrace > lastBracket)) ? lastBrace : lastBracket;
+  const end = Math.max(lastBrace, lastBracket);
 
-  if (start !== -1 && end !== -1 && end > start) {
-    const jsonStr = cleaned.substring(start, end + 1);
-    try { return JSON.parse(jsonStr); } catch (e) { }
+  if (end > start) {
+    // LLM robustness: Try shrinking the string from the end to find the first valid JSON object.
+    // This handles accidental trailing characters (like extra braces or prose) thrown in by the model.
+    for (let i = end; i >= start; i--) {
+      const char = cleaned[i];
+      if (char === "}" || char === "]") {
+        const candidate = cleaned.substring(start, i + 1);
+        try { return JSON.parse(candidate); } catch (e) { }
+      }
+    }
   }
 
   try { return JSON.parse(cleaned); } catch (e) { return null; }
@@ -63,8 +76,8 @@ class A2uiStatus extends A2uiBase {
       cursor: pointer; user-select: none; transition: background 0.3s ease;
     }
     .header:hover { background: rgba(79, 70, 229, 0.05); }
-    .label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #4f46e5; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; }
-    .label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #4f46e5; box-shadow: 0 0 10px #4f46e5; }
+    .label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #a5b4fc; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; }
+    .label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #a5b4fc; box-shadow: 0 0 10px #a5b4fc; }
     @media (prefers-color-scheme: dark) { .label { color: #a5b4fc; } .label::before { background: #a5b4fc; box-shadow: 0 0 10px #a5b4fc; } }
 
     .chevron {
@@ -121,7 +134,7 @@ class A2uiSection extends A2uiBase {
     }
     .title {
       font-size: 21px; font-weight: 900; letter-spacing: -0.03em;
-      background: linear-gradient(135deg, #0f172a, #334155);
+      background: linear-gradient(135deg, #f8fafc, #cbd5e1);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     @media (prefers-color-scheme: dark) { .title { background: linear-gradient(135deg, #f8fafc, #cbd5e1); -webkit-background-clip: text; } }
@@ -134,13 +147,13 @@ class A2uiResult extends A2uiBase {
     :host { display: block; margin: 20px 0; }
     .card {
       position: relative; border-radius: 32px; padding: 32px 36px;
-      background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(40px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.06), 0 8px 20px -6px rgba(0, 0, 0, 0.04);
+      background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.2), 0 8px 20px -6px rgba(0, 0, 0, 0.1);
       transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden;
     }
     .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #4f46e5, #9333ea, #ec4899); opacity: 0.8; }
-    .content { color: #1e293b; font-size: 17px; line-height: 1.85; }
+    .content { color: #f1f5f9; font-size: 17px; line-height: 1.85; }
     @media (prefers-color-scheme: dark) { .card { background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.08); } .content { color: #f1f5f9; } }
   `;
   render() { return html`<div class="card"><div class="content"><slot></slot></div></div>`; }
@@ -151,14 +164,14 @@ class A2uiTable extends A2uiBase {
   static styles = css`
     :host { display: block; margin: 28px 0; overflow-x: auto; }
     .outer-wrap {
-      border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(32px);
-      overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.1);
+      border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(32px);
+      overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
     }
     table { width: 100%; border-collapse: collapse; font-size: 15px; }
-    thead th { background: rgba(255, 255, 255, 0.4); color: #0f172a; font-weight: 800; text-align: left; padding: 20px 24px; border-bottom: 2px solid rgba(0, 0, 0, 0.03); white-space: nowrap; }
-    tbody td { padding: 20px 24px; color: #334155; border-bottom: 1px solid rgba(0, 0, 0, 0.03); }
-    tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.2); }
+    thead th { background: rgba(255, 255, 255, 0.06); color: #f8fafc; font-weight: 800; text-align: left; padding: 20px 24px; border-bottom: 2px solid rgba(255, 255, 255, 0.05); white-space: nowrap; }
+    tbody td { padding: 20px 24px; color: #cbd5e1; border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
+    tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
     tbody tr:hover { background: rgba(79, 70, 229, 0.08); }
     @media (prefers-color-scheme: dark) {
       .outer-wrap { background: rgba(15, 23, 42, 0.5); border-color: rgba(255, 255, 255, 0.07); }
@@ -197,12 +210,19 @@ class A2uiTable extends A2uiBase {
 class A2uiTabs extends A2uiBase {
   static properties = { data: { type: String }, active: { type: Number } };
   static styles = css`
-    :host { display: block; margin: 28px 0; }
-    .bar { display: flex; gap: 8px; padding: 8px; background: rgba(255, 255, 255, 0.35); border-radius: 22px; margin-bottom: 28px; backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.3); }
-    .tab { flex: 1; padding: 12px 20px; border-radius: 16px; border: none; background: transparent; color: #64748b; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.5s ease; }
-    .tab.active { background: white; color: #4f46e5; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
-    .content-area { padding: 40px; background: rgba(255, 255, 255, 0.55); border-radius: 36px; border: 1px solid rgba(255, 255, 255, 0.4); font-size: 16.5px; line-height: 1.9; color: #334155; min-height: 180px; backdrop-filter: blur(32px); }
-    @media (prefers-color-scheme: dark) { .bar { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.08); } .tab.active { background: rgba(255, 255, 255, 0.12); color: #a5b4fc; } .content-area { background: rgba(15, 23, 42, 0.45); border-color: rgba(255, 255, 255, 0.06); color: #e2e8f0; } }
+    :host { display: block; margin: 12px 0; }
+    .bar { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .tab { flex: 1; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; color: rgba(255, 255, 255, 0.5); font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.5s ease; }
+    .tab:hover { color: #ffffff; background: rgba(255, 255, 255, 0.08); }
+    .tab.active { background: rgba(255, 255, 255, 0.12); color: #a5b4fc; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
+    .content-area { padding: 16px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; line-height: 1.6; color: #e2e8f0; min-height: 100px; backdrop-filter: blur(32px); white-space: pre-wrap; }
+    @media (prefers-color-scheme: dark) { 
+      .bar { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.08); } 
+      .tab { color: rgba(255, 255, 255, 0.5); } 
+      .tab:hover { color: #ffffff; } 
+      .tab.active { background: rgba(255, 255, 255, 0.12); color: #a5b4fc; } 
+      .content-area { background: rgba(15, 23, 42, 0.45); border-color: rgba(255, 255, 255, 0.06); color: #e2e8f0; } 
+    }
   `;
   declare data: string | undefined;
   declare active: number;
@@ -213,7 +233,10 @@ class A2uiTabs extends A2uiBase {
     const items: { title: string; content: string }[] = Array.isArray(parsed?.tabItems)
       ? parsed.tabItems.map((it: any) => ({ title: String(it?.title || "Tab"), content: String(it?.content || it?.child || "") }))
       : (Array.isArray(parsed) ? (typeof parsed[0] === 'object' ? Object.keys(parsed[0]).map(k => ({ title: k, content: String(parsed[0][k]) })) : []) : []);
+    
+    // Fallback logic if parsing failed or items is empty but we have content
     if (items.length === 0) return html`<div class="content-area"><slot></slot></div>`;
+    
     const idx = Math.max(0, Math.min(items.length - 1, this.active));
     return html`
       <div class="bar">${items.map((it, i) => html`<button class="tab ${i === idx ? "active" : ""}" @click=${() => { this.active = i; this.requestUpdate(); }}>${it.title}</button>`)}</div>
@@ -228,15 +251,15 @@ class A2uiCode extends A2uiBase {
     :host { display: block; margin: 28px 0; border-radius: 28px; overflow: hidden; box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.15); transition: transform 0.3s ease; }
     :host(:hover) { transform: translateY(-2px); }
     .header { 
-      background: rgba(248, 250, 252, 0.8); backdrop-filter: blur(12px);
-      color: #64748b; padding: 14px 28px; font-size: 10px; font-weight: 800;
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px);
+      color: #94a3b8; padding: 14px 28px; font-size: 10px; font-weight: 800;
       text-transform: uppercase; letter-spacing: 0.1em;
-      border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; 
+      border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; 
       justify-content: space-between; align-items: center; 
     }
-    .lang-badge { padding: 5px 12px; border-radius: 8px; background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
-    pre { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(40px); padding: 28px; margin: 0; overflow: auto; font-size: 14px; line-height: 1.7; border: 1px solid rgba(255, 255, 255, 0.4); border-top: none; }
-    code { font-family: "JetBrains Mono", ui-monospace, monospace; color: #1e293b; }
+    .lang-badge { padding: 5px 12px; border-radius: 8px; background: rgba(165, 180, 252, 0.1); color: #a5b4fc; }
+    pre { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(40px); padding: 28px; margin: 0; overflow: auto; font-size: 14px; line-height: 1.7; border: 1px solid rgba(255, 255, 255, 0.08); border-top: none; }
+    code { font-family: "JetBrains Mono", ui-monospace, monospace; color: #e2e8f0; }
     @media (prefers-color-scheme: dark) {
       .header { background: rgba(15, 23, 42, 0.8); color: #94a3b8; border-bottom-color: rgba(255,255,255,0.06); }
       .lang-badge { background: rgba(165, 180, 252, 0.1); color: #a5b4fc; }
@@ -259,10 +282,10 @@ class A2uiCode extends A2uiBase {
 class A2uiList extends A2uiBase {
   static properties = { items: { type: Array }, data: { type: String } };
   static styles = css`
-    :host { display: block; margin: 20px 0; }
-    ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px; }
-    li { display: flex; align-items: flex-start; gap: 20px; padding: 22px 30px; background: rgba(255, 255, 255, 0.5); border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.4); font-size: 16px; color: #334155; backdrop-filter: blur(24px); transition: all 0.5s ease; }
-    li:hover { background: rgba(255, 255, 255, 0.85); transform: translateX(12px); }
+    :host { display: block; margin: 12px 0; }
+    ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; color: #cbd5e1; backdrop-filter: blur(24px); transition: all 0.5s ease; }
+    li:hover { background: rgba(255, 255, 255, 0.12); transform: translateX(8px); }
     @media (prefers-color-scheme: dark) { li { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.08); color: #cbd5e1; } }
   `;
   declare items: any[] | undefined;
@@ -273,6 +296,30 @@ class A2uiList extends A2uiBase {
     const resolvedItems = Array.isArray(this.items) ? this.items : (Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.items) ? parsed.items : null));
     if (resolvedItems && resolvedItems.length > 0) return html`<ul>${resolvedItems.map((it: any) => html`<li><span style="color:#4f46e5">✦</span> <span>${String(it)}</span></li>`)}</ul>`;
     return html`<ul><slot></slot></ul>`;
+  }
+}
+
+class A2uiVideo extends A2uiBase {
+  static properties = { data: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 28px 0; overflow: hidden; border-radius: 28px; box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25); position: relative; }
+    .aspect-ratio-wrap { position: relative; width: 100%; padding-top: 56.25%; background: rgba(0,0,0,0.4); }
+    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    .error-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.9); color: white; padding: 20px; text-align: center; }
+  `;
+  declare data: string | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const videoUrl = parsed?.component?.Video?.url?.literalString;
+    if (!videoUrl) {
+      return html`<div class="aspect-ratio-wrap"><div class="error-wrap">No valid video URL provided</div></div>`;
+    }
+    return html`
+      <div class="aspect-ratio-wrap">
+        <iframe src="${videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    `;
   }
 }
 
@@ -320,7 +367,8 @@ const mapping = {
   "a2-tabs": A2uiTabs, "a2ui-tabs": A2uiTabsLegacy,
   "a2-code": A2uiCode, "a2ui-code": A2uiCodeLegacy,
   "a2-list": A2uiList, "a2ui-list": A2uiListLegacy,
-  "a2-progress": A2uiProgress, "a2ui-progress": A2uiProgressLegacy
+  "a2-progress": A2uiProgress, "a2ui-progress": A2uiProgressLegacy,
+  "a2-video": A2uiVideo
 };
 
 Object.entries(mapping).forEach(([tag, klass]) => {

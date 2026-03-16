@@ -119,17 +119,21 @@ body .copilotKitChat {
   border-radius: 20px !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   transition: all 0.3s ease !important;
+  color: #ffffff !important;
 }
 
 .premium-chat-customization .copilotKitMessage--user {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)) !important;
   border-color: rgba(99, 102, 241, 0.3) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  color: #ffffff !important;
 }
 
 .premium-chat-customization .copilotKitMessage--assistant {
   background: rgba(255, 255, 255, 0.05) !important;
   backdrop-filter: blur(8px) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  white-space: pre-wrap !important;
 }
 
 .premium-chat-customization .copilotKitMessage--assistant .copilotKitMessage__label {
@@ -156,12 +160,14 @@ body .copilotKitChat {
 .premium-chat-customization .copilotKitInput {
   background: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 24px !important; /* Matches image rounded input */
-  margin: 1.5rem !important;
-  padding: 1.25rem 1.5rem !important;
+  border-radius: 24px !important;
+  margin: 1rem !important;
+  width: auto !important;
+  padding: 1rem 1.25rem !important;
   transition: all 0.3s ease !important;
   color: #ffffff !important;
   font-size: 1rem !important;
+  box-sizing: border-box !important;
 }
 
 .premium-chat-customization .copilotKitInput::placeholder {
@@ -171,17 +177,16 @@ body .copilotKitChat {
 /* Fix visibility for headings and labels in the assistant response */
 .premium-chat-customization .copilotKitMessage__label,
 .premium-chat-customization .copilotKitMessage__header,
+.premium-chat-customization .copilotKitMessage__content,
+.premium-chat-customization .copilotKitMessage__content *,
 .premium-chat-customization h1, 
 .premium-chat-customization h2, 
 .premium-chat-customization h3, 
 .premium-chat-customization strong,
-.premium-chat-customization b {
+.premium-chat-customization b,
+.premium-chat-customization li {
   color: #ffffff !important;
   opacity: 1 !important;
-}
-
-.premium-chat-customization .copilotKitMessage--assistant {
-  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 /* Custom bullet/item styling based on the list blocks in image */
@@ -253,7 +258,14 @@ body .copilotKitChat {
   }
 
   .premium-chat-customization .copilotKitInput {
-    margin: 1rem !important;
+    margin: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  .premium-chat-customization .copilotKitMessagesList {
+    padding: 1rem 0.5rem !important;
+    gap: 1rem !important;
   }
 
   footer {

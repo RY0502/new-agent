@@ -104,6 +104,20 @@ const COMPONENT_DEFINITIONS: Record<string, { tag: string; schema: string; examp
       "        a, b = b, a + b</a2-code>",
     ].join("\n"),
   },
+  video: {
+    tag: "a2-video",
+    schema: [
+      "<a2-video> — renders an embedded video player.",
+      'Inner content MUST be a valid JSON object matching the requested schema: { "id": string, "component": { "Video": { "url": { "literalString": string } } } }.',
+      "If the user asks for a YouTube video, you MUST perform a search to find a specific video ID (11 characters).",
+      "The URL MUST follow the EXACT format: https://www.youtube.com/embed/VIDEO_ID",
+      "CRITICAL: Do not use generic links like youtube.com or search result redirects. You must identify the unique 'v' parameter or embed ID for the specific content.",
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      '<a2-video>{"id": "video-1", "component": { "Video": { "url": { "literalString": "https://www.youtube.com/embed/dQw4w9WgXcQ" } } }}</a2-video>',
+    ].join("\n"),
+  },
 };
 
 /**
@@ -211,7 +225,8 @@ const geminiSearch = async (
   const sel = (state.selectedUI || "result").toLowerCase();
   const a2uiPrompt = buildA2UISystemPrompt(sel, state.selectedUISchema || "");
   const reply = await llm.invoke([
-    ["system", "Use search to fetch current information."],
+    ["system", "You are an agent with web search capabilities. Fetch real-time data to answer the user query."],
+    ["system", "If the user wants a video, explicitly look for specific YouTube video IDs in the search results. DO NOT provide generic YouTube home or search URLs. You must extract a real video ID (e.g. dQw4w9WgXcQ) and use the /embed/ format."],
     ["system", a2uiPrompt],
     ["user", lastUser],
   ] as any);
@@ -291,7 +306,7 @@ const groqUIDecider = async (
 
   const prompt = [
     "You are a UI display selector. Choose the single best A2UI component for rendering the answer to the user query.",
-    'Allowed components: "tabs", "table", "list", "result", "code".',
+    'Allowed components: "tabs", "table", "list", "result", "code", "video".',
     "Selection rules:",
     '- User explicitly asks for a "table" or "tabular format" -> "table"',
     '- Comparison queries -> "tabs" (e.g., "react vs angular", "compare SAML and OAuth")',
@@ -299,6 +314,7 @@ const groqUIDecider = async (
     '- Summarized, scannable bullet-like facts -> "list" (e.g., "Lionel Messi kids")',
     '- General details or when unsure -> "result"',
     '- Code output -> "code" (e.g., "write a Python function to ...")',
+    '- Video, clips or youtube requests -> "video"',
     'Output ONLY JSON: {"component": "<one_of_allowed>", "reason": "<short why>"}.',
     "Query: " + userText,
   ].join("\n");
@@ -318,8 +334,9 @@ const groqUIDecider = async (
     const parsed = JSON.parse(contentText);
     let cand = String(parsed.component || "result").toLowerCase();
     if (cand === "tab") cand = "tabs";
-    if (["tabs", "table", "list", "result", "code"].includes(cand)) component = cand;
-  } catch { }
+    if (cand === "vid") cand = "video";
+    if (["tabs", "table", "list", "result", "code", "video"].includes(cand)) component = cand;
+  } catch (e) { }
 
   const def = COMPONENT_DEFINITIONS[component] || COMPONENT_DEFINITIONS["result"];
   const selectedUISchema = [
