@@ -4,7 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser"
+    "dev": "npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser",
+    "start": "tsx src/server.ts",
+    "start:prod": "NODE_ENV=production tsx src/server.ts",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop chat-agent",
+    "pm2:restart": "pm2 restart chat-agent",
+    "pm2:logs": "pm2 logs chat-agent",
+    "pm2:monit": "pm2 monit"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +24,7 @@
   },
   "dependencies": {
     "@copilotkit/sdk-js": "1.51.4",
-    "@langchain/core": "^1.0.1",
+    "@langchain/core": "^0.3.58",
     "@langchain/langgraph": "1.0.2",
     "@langchain/langgraph-checkpoint": "1.0.0",
     "@langchain/openai": "^1.1.3",
