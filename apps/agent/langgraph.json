@@ -4,5 +4,9 @@
     "starterAgent": "./src/agent.ts:graph"
   },
   "env": ".env",
-  "dependencies": ["."]
+  "dependencies": ["."],
+  "timeout": 120,
+  "store": {
+    "type": "memory"
+  }
 }
