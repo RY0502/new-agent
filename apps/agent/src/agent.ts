@@ -293,7 +293,7 @@ const geminiSearch = async (
       llm.invoke([
         ["system", "You are an agent with real-time web search capabilities. You MUST use the googleSearch tool to fetch current, up-to-date information for EVERY query. Do NOT rely on your training data - always perform a live web search first."],
         ["system", "CRITICAL: Always invoke the googleSearch tool before answering. Search for the most relevant and recent information related to the user's query."],
-        ["system", "VIDEO SEARCH REQUIREMENTS:\n- When searching for videos, use googleSearch to find specific YouTube videos\n- From the search results, extract the 11-character video ID (found in URLs like youtube.com/watch?v=VIDEO_ID or youtu.be/VIDEO_ID)\n- NEVER use generic URLs like 'youtube.com' or 'youtube.com/results'\n- ALWAYS construct the embed URL in this exact format: https://www.youtube.com/embed/VIDEO_ID\n- Example: If you find 'youtube.com/watch?v=dQw4w9WgXcQ', extract 'dQw4w9WgXcQ' and use 'https://www.youtube.com/embed/dQw4w9WgXcQ'\n- If no specific video ID is found in search results, search again with more specific terms"],
+        ["system", "VIDEO SEARCH REQUIREMENTS:\n- When searching for videos, add 'official' or 'channel' to your search query to find videos from verified channels that typically allow embedding\n- Search for popular, public videos from major channels (sports leagues, music labels, official channels) as these usually allow embedding\n- Avoid searching for: user-uploaded clips, unofficial compilations, or videos with 'fan made' in the title - these often have embedding disabled\n- Extract the 11-character video ID from URLs in search results (format: youtube.com/watch?v=VIDEO_ID or youtu.be/VIDEO_ID)\n- ALWAYS construct embed URLs as: https://www.youtube.com/embed/VIDEO_ID\n- Only output the video component if you find a real video ID from an official or verified source\n- If you cannot find an embeddable video, use the result component to inform the user and provide a YouTube search link"],
         ["system", a2uiPrompt],
         ["user", lastUser],
       ] as any),
@@ -302,6 +302,41 @@ const geminiSearch = async (
     );
     
     let text = String(reply.content || reply.text || "");
+    
+    // Log the raw agent response for debugging
+    console.log("=== GEMINI SEARCH RAW RESPONSE ===");
+    console.log("Selected UI:", sel);
+    console.log("Response length:", text.length);
+    console.log("Response content:", text);
+    console.log("=================================");
+
+    // Validate video URLs if this is a video response
+    if (sel === "video" && text.includes("<a2-video>")) {
+      // Check for placeholder or invalid video IDs (all same character repeated 11 times)
+      const videoIdPattern = /https:\/\/www\.youtube\.com\/embed\/([A-Za-z0-9_-]{11})/;
+      const match = text.match(videoIdPattern);
+      
+      if (match) {
+        const videoId = match[1];
+        console.log("Extracted video ID:", videoId);
+        
+        // Check if it's a placeholder (all same character)
+        const isPlaceholder = /^(.)\1{10}$/.test(videoId);
+        console.log("Is placeholder?", isPlaceholder);
+        
+        if (isPlaceholder) {
+          console.warn("Detected placeholder video ID:", videoId);
+          // Try to extract video title from the response
+          const titleMatch = text.match(/"([^"]+)"/);
+          const videoTitle = titleMatch ? titleMatch[1] : lastUser;
+          const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoTitle)}`;
+          
+          text = `<section>Answer</section><a2-result>I found a video titled "<strong>${videoTitle}</strong>" but cannot embed it directly. <a href="${searchUrl}" target="_blank" style="color: #4f46e5; text-decoration: underline;">Click here to watch it on YouTube</a>.</a2-result>`;
+        } else {
+          console.log("Valid video ID detected, keeping original response");
+        }
+      }
+    }
 
     const finalLogs = state.logs || [];
     if (finalLogs.length > 0) {
@@ -497,6 +532,7 @@ const workflow = new StateGraph(AgentStateAnnotation)
 class LimitedMemorySaver extends MemorySaver {
   private maxCheckpoints: number;
   private checkpointCounts: Map<string, number> = new Map();
+  private checkpointTracker: Map<string, any> = new Map();
 
   constructor(maxCheckpoints: number = 5) {
     super();
@@ -505,15 +541,44 @@ class LimitedMemorySaver extends MemorySaver {
 
   async put(config: RunnableConfig, checkpoint: any, metadata: any): Promise<RunnableConfig> {
     const threadId = config.configurable?.thread_id || "default";
-    const count = this.checkpointCounts.get(threadId) || 0;
     
+    // Track checkpoint count for this thread
+    const count = this.checkpointCounts.get(threadId) || 0;
+    this.checkpointCounts.set(threadId, count + 1);
+    
+    // Store checkpoint metadata with thread-specific key
+    const key = `${threadId}:${checkpoint.id}`;
+    this.checkpointTracker.set(key, { checkpoint, metadata, timestamp: Date.now() });
+    
+    // Clean up old checkpoints if limit exceeded
     if (count >= this.maxCheckpoints) {
-      this.checkpointCounts.set(threadId, 0);
-    } else {
-      this.checkpointCounts.set(threadId, count + 1);
+      this.cleanupOldCheckpoints(threadId);
     }
     
     return super.put(config, checkpoint, metadata);
+  }
+
+  private cleanupOldCheckpoints(threadId: string) {
+    // Get all checkpoints for this thread
+    const threadCheckpoints: Array<{ key: string; timestamp: number }> = [];
+    
+    for (const [key, value] of this.checkpointTracker.entries()) {
+      if (key.startsWith(`${threadId}:`)) {
+        threadCheckpoints.push({ key, timestamp: value.timestamp });
+      }
+    }
+    
+    // Sort by timestamp (oldest first)
+    threadCheckpoints.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Remove oldest checkpoints beyond the limit
+    const toRemove = threadCheckpoints.length - this.maxCheckpoints;
+    if (toRemove > 0) {
+      for (let i = 0; i < toRemove; i++) {
+        this.checkpointTracker.delete(threadCheckpoints[i].key);
+      }
+      console.log(`Cleaned up ${toRemove} old checkpoint(s) for thread ${threadId}`);
+    }
   }
 }
 
