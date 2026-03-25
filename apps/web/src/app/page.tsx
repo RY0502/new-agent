@@ -16,13 +16,11 @@ declare global {
       'a2-section': any;
       'a2-result': any;
       'a2-progress': any;
-      'a2-list': any;
-      'a2-table': any;
-      'a2-tabs': any;
-      'a2-code': any;
       'a2-action': any;
       'a2-row': any;
-      'a2-image': any;
+      'a2-list': any;
+      'a2-table': any;
+      'a2-code': any;
       'a2-column': any;
       'a2-text': any;
       'a2-icon': any;
@@ -32,6 +30,9 @@ declare global {
       'a2-checkbox': any;
       'a2-card': any;
       'a2-modal': any;
+      'a2-tabs': any;
+      'a2-image': any;
+      'a2-video': any;
       'a2ui-status': any;
       'a2ui-section': any;
       'a2ui-result': any;
@@ -131,8 +132,9 @@ function TableTag({ children }: { children?: React.ReactNode }) {
   return <a2-table data={text}>{children}</a2-table>;
 }
 function ImageTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
   // @ts-ignore
-  return <a2-image>{children}</a2-image>;
+  return <a2-image data={text}>{children}</a2-image>;
 }
 function CodeTag({ children, ...props }: any) {
   // @ts-ignore
@@ -273,6 +275,8 @@ export default function Home() {
                     "a2-table": TableTag,
                     "a2-tabs": TabsTag,
                     "a2-code": CodeTag,
+                    "a2-image": ImageTag,
+                    "a2-video": VideoTag,
 
                     // Legacy/Fallback mapping
                     status: StatusTag, wow: StatusTag, result: ResultTag,
@@ -280,7 +284,7 @@ export default function Home() {
                     table: TableTag, image: ImageTag, code: CodeTag, column: ColumnTag,
                     tab: TabsTag, text: TextTag, icon: IconTag, divider: DividerTag,
                     button: ButtonTag, textfield: TextFieldTag, checkbox: CheckBoxTag,
-                    card: CardTag, modal: ModalTag, tabs: TabsTag,
+                    card: CardTag, modal: ModalTag, tabs: TabsTag, video: VideoTag,
                   }}
                   onInProgress={(p) => {
                     setStreaming(p);
