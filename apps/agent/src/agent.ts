@@ -61,21 +61,25 @@ function getMistralClient(): ChatMistralAI {
 function getGeminiClient(): ChatGoogle {
   const key1 = process.env.GOOGLE_API_KEY;
   const key2 = process.env.ANOTHER_GOOGLE_API_KEY;
+  
+  // Round-robin between keys
   const apiKey = keyToggle ? key1 : (key2 || key1);
   keyToggle = !keyToggle;
   
-  if (!geminiInstance) {
-    geminiInstance = new ChatGoogle({
-      model: "gemini-2.5-flash",
-      apiKey: apiKey,
-      maxRetries: 1
-    }).bindTools([
-      {
-        googleSearch: {},
-      },
-    ]) as ChatGoogle;
-  }
-  return geminiInstance;
+  console.log(`[Gemini] Using API key: ${apiKey?.substring(0, 10)}... (toggle: ${!keyToggle})`);
+  
+  // Create new instance with selected API key for true round-robin
+  const client = new ChatGoogle({
+    model: "gemini-2.5-flash",
+    apiKey: apiKey,
+    maxRetries: 1
+  }).bindTools([
+    {
+      googleSearch: {},
+    },
+  ]) as ChatGoogle;
+  
+  return client;
 }
 
 function getGroqClient(): ChatGroq {
@@ -177,6 +181,21 @@ const COMPONENT_DEFINITIONS: Record<string, { tag: string; schema: string; examp
     example: [
       "<section>Answer</section>",
       '<a2-video>{"id": "video-1", "component": { "Video": { "url": { "literalString": "https://www.youtube.com/embed/dQw4w9WgXcQ" } } }}</a2-video>',
+    ].join("\n"),
+  },
+  image: {
+    tag: "a2-image",
+    schema: [
+      "<a2-image> — renders an image with responsive sizing and optional fit modes.",
+      'Inner content MUST be a valid JSON object: { "id": string, "component": { "Image": { "url": { "literalString": string }, "fit": "cover" | "contain" | "fill", "usageHint": "hero" | "thumbnail" | "icon" | "content" } } }.',
+      "The URL must be a direct link to an image file (jpg, png, gif, webp, svg).",
+      'fit: "cover" (default) - fills container, may crop; "contain" - fits entire image; "fill" - stretches to fill',
+      'usageHint: "hero" - large banner; "thumbnail" - small preview; "icon" - small icon; "content" - inline content',
+      "When searching for images, use Google Search to find relevant, high-quality images.",
+    ].join("\n"),
+    example: [
+      "<section>Answer</section>",
+      '<a2-image>{"id": "hero", "component": { "Image": { "url": { "literalString": "https://example.com/hero.png" }, "fit": "cover", "usageHint": "hero" } } }</a2-image>',
     ].join("\n"),
   },
 };
@@ -293,6 +312,7 @@ const geminiSearch = async (
       llm.invoke([
         ["system", "You are an agent with real-time web search capabilities. You MUST use the googleSearch tool to fetch current, up-to-date information for EVERY query. Do NOT rely on your training data - always perform a live web search first."],
         ["system", "CRITICAL: Always invoke the googleSearch tool before answering. Search for the most relevant and recent information related to the user's query."],
+        ["system", "IMAGE SEARCH REQUIREMENTS:\n- When users request images, you MUST find DIRECT image URLs that end in image extensions (.jpg, .jpeg, .png, .gif, .webp)\n- AVOID Wikipedia/Wikimedia URLs as they often have CORS restrictions and 404 errors\n- PRIORITIZE these reliable image sources:\n  * Unsplash CDN: images.unsplash.com\n  * Pexels CDN: images.pexels.com\n  * Imgur: i.imgur.com\n  * Flickr CDN: live.staticflickr.com\n  * Major news sites: cdn.cnn.com, static01.nyt.com\n  * Stock photo sites with direct CDN URLs\n- Search query format: '[subject] high quality image direct URL'\n- VERIFY the URL ends with an image extension before using it\n- If you cannot find a direct image URL, use the RESULT component instead with a description and search link\n- Example GOOD URL: https://images.unsplash.com/photo-1234567890/cat.jpg\n- Example BAD URL: https://en.wikipedia.org/wiki/File:Cat.jpg (Wikipedia page, not direct image)\n- Example BAD URL: https://upload.wikimedia.org/... (often has CORS issues)"],
         ["system", "VIDEO SEARCH REQUIREMENTS:\n- IMPORTANT: Due to embedding restrictions, use the RESULT component instead of the video component\n- When users request videos, search for relevant videos and provide:\n  1. A brief description of the video you found\n  2. A clickable YouTube link using this format: <a href=\"https://www.youtube.com/watch?v=VIDEO_ID\" target=\"_blank\">Watch on YouTube</a>\n- Prioritize official sources: sports leagues (NBA, FIFA), music labels (VEVO), news (BBC, CNN), education (TED, National Geographic)\n- Extract the 11-character video ID from search results (format: youtube.com/watch?v=VIDEO_ID)\n- Example response: <section>Answer</section><a2-result>I found \"Messi Amazing Goal vs Real Madrid\" from the official La Liga channel. <a href=\"https://www.youtube.com/watch?v=abc12345678\" target=\"_blank\" style=\"color: #4f46e5; text-decoration: underline;\">Watch on YouTube</a></a2-result>\n- DO NOT use the video component - always use result component with YouTube links"],
         ["system", a2uiPrompt],
         ["user", lastUser],
@@ -310,6 +330,36 @@ const geminiSearch = async (
     console.log("Response content:", text);
     console.log("=================================");
 
+    // Validate image URLs if this is an image response
+    if (sel === "image" && text.includes("<a2-image>")) {
+      const imageUrlPattern = /"literalString":\s*"([^"]+)"/;
+      const match = text.match(imageUrlPattern);
+      
+      if (match) {
+        const imageUrl = match[1];
+        console.log("Extracted image URL:", imageUrl);
+        
+        // Check for problematic URL patterns
+        const isWikipedia = imageUrl.includes("wikipedia.org") || imageUrl.includes("wikimedia.org");
+        const hasImageExtension = /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(imageUrl);
+        const isReliableSource = /\b(unsplash\.com|pexels\.com|imgur\.com|staticflickr\.com)\b/i.test(imageUrl);
+        
+        console.log("Is Wikipedia/Wikimedia?", isWikipedia);
+        console.log("Has image extension?", hasImageExtension);
+        console.log("Is reliable source?", isReliableSource);
+        
+        if (isWikipedia || (!hasImageExtension && !isReliableSource)) {
+          console.warn("Detected problematic image URL:", imageUrl);
+          const searchQuery = encodeURIComponent(lastUser + " image");
+          const searchUrl = `https://www.google.com/search?q=${searchQuery}&tbm=isch`;
+          
+          text = `<section>Answer</section><a2-result>I found an image for "${lastUser}" but it may not load properly due to source restrictions. <a href="${searchUrl}" target="_blank" style="color: #4f46e5; text-decoration: underline;">Click here to view images on Google</a>.</a2-result>`;
+        } else {
+          console.log("Image URL looks valid, keeping original response");
+        }
+      }
+    }
+    
     // Validate video URLs if this is a video response
     if (sel === "video" && text.includes("<a2-video>")) {
       // Check for placeholder or invalid video IDs (all same character repeated 11 times)
@@ -426,7 +476,7 @@ const groqUIDecider = async (
 
     const prompt = [
       "You are a UI display selector. Choose the single best A2UI component for rendering the answer to the user query.",
-      'Allowed components: "tabs", "table", "list", "result", "code", "video".',
+      'Allowed components: "tabs", "table", "list", "result", "code", "video", "image".',
       "Selection rules:",
       '- User explicitly asks for a "table" or "tabular format" -> "table"',
       '- Comparison queries -> "tabs" (e.g., "react vs angular", "compare SAML and OAuth")',
@@ -435,6 +485,7 @@ const groqUIDecider = async (
       '- General details or when unsure -> "result"',
       '- Code output -> "code" (e.g., "write a Python function to ...")',
       '- Video, clips or youtube requests -> "video"',
+      '- Image, photo, picture, or visual requests -> "image" (e.g., "show me Eiffel Tower", "picture of sunset")',
       'Output ONLY JSON: {"component": "<one_of_allowed>", "reason": "<short why>"}.',
       "Query: " + userText,
     ].join("\n");
@@ -461,7 +512,8 @@ const groqUIDecider = async (
       let cand = String(parsed.component || "result").toLowerCase();
       if (cand === "tab") cand = "tabs";
       if (cand === "vid") cand = "video";
-      if (["tabs", "table", "list", "result", "code", "video"].includes(cand)) component = cand;
+      if (cand === "img" || cand === "pic" || cand === "picture" || cand === "photo") cand = "image";
+      if (["tabs", "table", "list", "result", "code", "video", "image"].includes(cand)) component = cand;
     } catch (parseError) {
       console.error("Failed to parse UI component selection", parseError);
     }
