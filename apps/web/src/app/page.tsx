@@ -190,6 +190,7 @@ export default function Home() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const [streaming, setStreaming] = useState(false);
   const [clientSkin, setClientSkin] = useState('indigo');
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -201,10 +202,29 @@ export default function Home() {
 
   useEffect(() => {
     if (!streaming) return;
-    const id = setInterval(() => {
-      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 400);
-    return () => clearInterval(id);
+    
+    let rafId: number;
+    const scrollToBottom = () => {
+      const container = scrollContainerRef.current;
+      const end = endRef.current;
+      
+      if (container && end) {
+        const containerRect = container.getBoundingClientRect();
+        const endRect = end.getBoundingClientRect();
+        
+        // Only auto-scroll if user is near the bottom (within 100px)
+        const isNearBottom = endRect.bottom - containerRect.bottom < 100;
+        
+        if (isNearBottom) {
+          end.scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+      }
+      
+      rafId = requestAnimationFrame(scrollToBottom);
+    };
+    
+    rafId = requestAnimationFrame(scrollToBottom);
+    return () => cancelAnimationFrame(rafId);
   }, [streaming]);
 
   return (
@@ -213,10 +233,10 @@ export default function Home() {
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.05),transparent_50%)] pointer-events-none" />
       <main className="relative z-10 flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full">
         <header className="flex items-center justify-between w-full mb-10">
-          <div className="flex items-center space-x-4 group cursor-default">
+          <div className="flex items-center space-x-3 md:space-x-4 group cursor-default">
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-              <div className="relative h-12 w-12 flex items-center justify-center rounded-2xl glass border-white/10 group-hover:border-white/20 transition-all duration-300">
+              <div className="relative h-12 w-12 flex items-center justify-center rounded-2xl glass border-white/10 group-hover:border-white/20 transition-all duration-300 touch-target">
                 <Sparkles className="h-6 w-6 text-indigo-400" />
               </div>
             </div>
@@ -237,7 +257,7 @@ export default function Home() {
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             <div className="flex-1 min-h-0 p-1 flex flex-col relative">
               <LoadingBar active={streaming} />
-              <div className="flex-1 min-h-0 relative">
+              <div className="flex-1 min-h-0 relative" ref={scrollContainerRef}>
                 <CopilotChat
                   className="premium-chat-customization"
                   markdownTagRenderers={{
