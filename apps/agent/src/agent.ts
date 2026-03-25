@@ -312,7 +312,7 @@ const geminiSearch = async (
       llm.invoke([
         ["system", "You are an agent with real-time web search capabilities. You MUST use the googleSearch tool to fetch current, up-to-date information for EVERY query. Do NOT rely on your training data - always perform a live web search first."],
         ["system", "CRITICAL: Always invoke the googleSearch tool before answering. Search for the most relevant and recent information related to the user's query."],
-        ["system", "IMAGE SEARCH REQUIREMENTS:\n- When users request images, you MUST find DIRECT image URLs that end in image extensions (.jpg, .jpeg, .png, .gif, .webp)\n- AVOID Wikipedia/Wikimedia URLs as they often have CORS restrictions and 404 errors\n- PRIORITIZE these reliable image sources:\n  * Unsplash CDN: images.unsplash.com\n  * Pexels CDN: images.pexels.com\n  * Imgur: i.imgur.com\n  * Flickr CDN: live.staticflickr.com\n  * Major news sites: cdn.cnn.com, static01.nyt.com\n  * Stock photo sites with direct CDN URLs\n- Search query format: '[subject] high quality image direct URL'\n- VERIFY the URL ends with an image extension before using it\n- If you cannot find a direct image URL, use the RESULT component instead with a description and search link\n- Example GOOD URL: https://images.unsplash.com/photo-1234567890/cat.jpg\n- Example BAD URL: https://en.wikipedia.org/wiki/File:Cat.jpg (Wikipedia page, not direct image)\n- Example BAD URL: https://upload.wikimedia.org/... (often has CORS issues)"],
+        ["system", "IMAGE SEARCH REQUIREMENTS:\n- When users request images, search for actual working image URLs from reliable sources\n- CRITICAL: Test that URLs are accessible and not expired/404\n- PRIORITIZE these sources in order:\n  1. Imgur direct links: i.imgur.com/[id].jpg (most reliable, no expiration)\n  2. Flickr static CDN: live.staticflickr.com (permanent URLs)\n  3. Major news/media sites with CDN URLs\n  4. Public domain images from government sites (.gov domains)\n- AVOID these problematic sources:\n  * Wikipedia/Wikimedia (CORS issues, often 404)\n  * Unsplash/Pexels (URLs often expire or require auth)\n  * Pinterest (redirects, not direct images)\n  * Social media (require authentication)\n- Search strategy: '[subject] site:imgur.com OR site:flickr.com image'\n- URL MUST end with image extension: .jpg, .jpeg, .png, .gif, .webp\n- If you cannot find a reliable direct image URL after searching, use RESULT component with Google Images link instead\n- Example GOOD: https://i.imgur.com/abc123.jpg\n- Example GOOD: https://live.staticflickr.com/65535/12345_abc_b.jpg\n- Example BAD: Any URL that doesn't end in image extension"],
         ["system", "VIDEO SEARCH REQUIREMENTS:\n- When users request videos, search for relevant YouTube videos and use the VIDEO component to embed them\n- Extract the 11-character video ID from search results (format: youtube.com/watch?v=VIDEO_ID)\n- Convert to embed URL format: https://www.youtube.com/embed/VIDEO_ID\n- Prioritize official sources: sports leagues (NBA, FIFA), music labels (VEVO), news (BBC, CNN), education (TED, National Geographic)\n- ALWAYS use the video component with proper JSON format\n- Example response: <section>Answer</section><a2-video>{\"id\": \"video-1\", \"component\": { \"Video\": { \"url\": { \"literalString\": \"https://www.youtube.com/embed/abc12345678\" } } }}</a2-video>\n- Make sure the video ID is a real 11-character YouTube ID, not a placeholder"],
         ["system", a2uiPrompt],
         ["user", lastUser],
@@ -341,19 +341,24 @@ const geminiSearch = async (
         
         // Check for problematic URL patterns
         const isWikipedia = imageUrl.includes("wikipedia.org") || imageUrl.includes("wikimedia.org");
+        const isUnsplashPexels = imageUrl.includes("unsplash.com") || imageUrl.includes("pexels.com");
         const hasImageExtension = /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(imageUrl);
-        const isReliableSource = /\b(unsplash\.com|pexels\.com|imgur\.com|staticflickr\.com)\b/i.test(imageUrl);
+        const isImgur = imageUrl.includes("i.imgur.com") && hasImageExtension;
+        const isFlickr = imageUrl.includes("staticflickr.com") && hasImageExtension;
+        const isReliableSource = isImgur || isFlickr;
         
         console.log("Is Wikipedia/Wikimedia?", isWikipedia);
+        console.log("Is Unsplash/Pexels?", isUnsplashPexels);
         console.log("Has image extension?", hasImageExtension);
-        console.log("Is reliable source?", isReliableSource);
+        console.log("Is reliable source (Imgur/Flickr)?", isReliableSource);
         
-        if (isWikipedia || (!hasImageExtension && !isReliableSource)) {
+        // Block problematic sources
+        if (isWikipedia || isUnsplashPexels || (!hasImageExtension && !isReliableSource)) {
           console.warn("Detected problematic image URL:", imageUrl);
           const searchQuery = encodeURIComponent(lastUser + " image");
           const searchUrl = `https://www.google.com/search?q=${searchQuery}&tbm=isch`;
           
-          text = `<section>Answer</section><a2-result>I found an image for "${lastUser}" but it may not load properly due to source restrictions. <a href="${searchUrl}" target="_blank" style="color: #4f46e5; text-decoration: underline;">Click here to view images on Google</a>.</a2-result>`;
+          text = `<section>Answer</section><a2-result>I searched for images of "${lastUser}" but couldn't find a reliable direct image URL. <a href="${searchUrl}" target="_blank" style="color: #4f46e5; text-decoration: underline;">Click here to view images on Google</a>.</a2-result>`;
         } else {
           console.log("Image URL looks valid, keeping original response");
         }
