@@ -206,7 +206,19 @@ export default function Home() {
     if (!streaming) return;
     
     let rafId: number;
-    const scrollToBottom = () => {
+    let lastScrollTime = 0;
+    const SCROLL_THROTTLE = 100; // ms between scroll checks
+    
+    const scrollToBottom = (timestamp: number) => {
+      if (!streaming) return; // Stop if streaming ended
+      
+      // Throttle scroll checks
+      if (timestamp - lastScrollTime < SCROLL_THROTTLE) {
+        rafId = requestAnimationFrame(scrollToBottom);
+        return;
+      }
+      lastScrollTime = timestamp;
+      
       const container = scrollContainerRef.current;
       const end = endRef.current;
       
@@ -226,7 +238,9 @@ export default function Home() {
     };
     
     rafId = requestAnimationFrame(scrollToBottom);
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [streaming]);
 
   return (
