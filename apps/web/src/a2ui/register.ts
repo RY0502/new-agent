@@ -397,7 +397,6 @@ class A2uiList extends A2uiBase {
 }
 
 class A2uiImage extends A2uiBase {
-  static properties = { data: { type: String } };
   static styles = css`
     :host { display: block; margin: 28px 0; overflow: hidden; border-radius: 28px; box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25); position: relative; }
     .image-container { position: relative; width: 100%; background: rgba(0,0,0,0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
@@ -432,10 +431,10 @@ class A2uiImage extends A2uiBase {
       .image-container.thumbnail { min-height: 100px; max-height: 120px; }
     }
   `;
-  declare data: string | undefined;
   render() {
-    const src = (this.data || this.textContent || "").trim();
+    const src = (this.textContent || "").trim();
     console.log('[A2uiImage] Raw source:', src);
+    console.log('[A2uiImage] Source length:', src.length);
     const parsed = safeParseJSON(src);
     console.log('[A2uiImage] Parsed JSON:', parsed);
     const imageUrl = parsed?.component?.Image?.url?.literalString;
