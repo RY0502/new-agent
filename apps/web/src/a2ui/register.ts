@@ -435,25 +435,38 @@ class A2uiImage extends A2uiBase {
   declare data: string | undefined;
   render() {
     const src = (this.data || this.textContent || "").trim();
+    console.log('[A2uiImage] Raw source:', src);
     const parsed = safeParseJSON(src);
+    console.log('[A2uiImage] Parsed JSON:', parsed);
     const imageUrl = parsed?.component?.Image?.url?.literalString;
+    console.log('[A2uiImage] Image URL:', imageUrl);
     const fit = parsed?.component?.Image?.fit || "cover";
     const usageHint = parsed?.component?.Image?.usageHint || "content";
     
     if (!imageUrl) {
+      console.error('[A2uiImage] No valid image URL found in data');
       return html`<div class="image-container ${usageHint}"><div class="error-wrap"><div class="error-icon">🖼️</div><div>No valid image URL provided</div></div></div>`;
     }
     
     return html`
       <div class="image-container ${usageHint}">
-        <img src="${imageUrl}" alt="Image" class="${fit}" loading="lazy" @error=${(e: Event) => {
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const container = target.parentElement;
-          if (container) {
-            container.innerHTML = '<div class="error-wrap"><div class="error-icon">⚠️</div><div>Failed to load image</div></div>';
-          }
-        }} />
+        <img 
+          src="${imageUrl}" 
+          alt="Image" 
+          class="${fit}" 
+          loading="lazy" 
+          crossorigin="anonymous"
+          @load=${() => console.log('[A2uiImage] Image loaded successfully:', imageUrl)}
+          @error=${(e: Event) => {
+            console.error('[A2uiImage] Failed to load image:', imageUrl, e);
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const container = target.parentElement;
+            if (container) {
+              container.innerHTML = '<div class="error-wrap"><div class="error-icon">⚠️</div><div>Failed to load image</div></div>';
+            }
+          }} 
+        />
       </div>
     `;
   }
