@@ -69,7 +69,11 @@ function getGeminiClient(): ChatGoogle {
       model: "gemini-2.5-flash",
       apiKey: apiKey,
       maxRetries: 1
-    });
+    }).bindTools([
+      {
+        googleSearch: {},
+      },
+    ]) as ChatGoogle;
   }
   return geminiInstance;
 }
@@ -287,8 +291,9 @@ const geminiSearch = async (
     
     const reply = await withTimeout(
       llm.invoke([
-        ["system", "You are an agent with web search capabilities. Fetch real-time data to answer the user query."],
-        ["system", "If the user wants a video, explicitly look for specific YouTube video IDs in the search results. DO NOT provide generic YouTube home or search URLs. You must extract a real video ID (e.g. dQw4w9WgXcQ) and use the /embed/ format."],
+        ["system", "You are an agent with real-time web search capabilities. You MUST use the googleSearch tool to fetch current, up-to-date information for EVERY query. Do NOT rely on your training data - always perform a live web search first."],
+        ["system", "CRITICAL: Always invoke the googleSearch tool before answering. Search for the most relevant and recent information related to the user's query."],
+        ["system", "VIDEO SEARCH REQUIREMENTS:\n- When searching for videos, use googleSearch to find specific YouTube videos\n- From the search results, extract the 11-character video ID (found in URLs like youtube.com/watch?v=VIDEO_ID or youtu.be/VIDEO_ID)\n- NEVER use generic URLs like 'youtube.com' or 'youtube.com/results'\n- ALWAYS construct the embed URL in this exact format: https://www.youtube.com/embed/VIDEO_ID\n- Example: If you find 'youtube.com/watch?v=dQw4w9WgXcQ', extract 'dQw4w9WgXcQ' and use 'https://www.youtube.com/embed/dQw4w9WgXcQ'\n- If no specific video ID is found in search results, search again with more specific terms"],
         ["system", a2uiPrompt],
         ["user", lastUser],
       ] as any),
