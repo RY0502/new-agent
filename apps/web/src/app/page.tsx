@@ -134,7 +134,7 @@ function TableTag({ children }: { children?: React.ReactNode }) {
 function ImageTag({ children }: { children?: React.ReactNode }) {
   const text = getNodeText(children);
   // @ts-ignore
-  return <a2-image data={text}>{children}</a2-image>;
+  return <a2-image data={text} />;
 }
 function CodeTag({ children, ...props }: any) {
   // @ts-ignore
