@@ -74,6 +74,7 @@ class A2uiStatus extends A2uiBase {
     .header {
       padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
       cursor: pointer; user-select: none; transition: background 0.3s ease;
+      min-height: 44px;
     }
     .header:hover { background: rgba(79, 70, 229, 0.05); }
     .label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #a5b4fc; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; }
@@ -81,7 +82,7 @@ class A2uiStatus extends A2uiBase {
     @media (prefers-color-scheme: dark) { .label { color: #a5b4fc; } .label::before { background: #a5b4fc; box-shadow: 0 0 10px #a5b4fc; } }
 
     .chevron {
-      width: 14px; height: 14px; color: #64748b;
+      width: 20px; height: 20px; color: #64748b;
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .container.open .chevron { transform: rotate(180deg); }
@@ -99,6 +100,20 @@ class A2uiStatus extends A2uiBase {
       border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
     @media (prefers-color-scheme: dark) { .badge { background: rgba(255, 255, 255, 0.03); color: #94a3b8; border-color: rgba(255, 255, 255, 0.05); } }
+    
+    @media (max-width: 768px) {
+      :host { margin-bottom: 16px; }
+      .header { padding: 10px 16px; }
+      .content { gap: 6px; padding: 0 16px; }
+      .container.open .content { padding: 0 16px 16px 16px; }
+      .badge { padding: 5px 12px; font-size: 9px; }
+    }
+    
+    @media (max-width: 375px) {
+      .header { padding: 8px 12px; }
+      .content { gap: 4px; padding: 0 12px; }
+      .container.open .content { padding: 0 12px 12px 12px; }
+    }
   `;
   declare text: string;
   declare isOpen: boolean;
@@ -155,6 +170,17 @@ class A2uiResult extends A2uiBase {
     .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #4f46e5, #9333ea, #ec4899); opacity: 0.8; }
     .content { color: #f1f5f9; font-size: 17px; line-height: 1.85; }
     @media (prefers-color-scheme: dark) { .card { background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.08); } .content { color: #f1f5f9; } }
+    
+    @media (max-width: 768px) {
+      :host { margin: 16px 0; }
+      .card { border-radius: 24px; padding: 24px 28px; }
+      .content { font-size: 15px; line-height: 1.75; }
+    }
+    
+    @media (max-width: 375px) {
+      .card { border-radius: 20px; padding: 20px 24px; }
+      .content { font-size: 14px; line-height: 1.7; }
+    }
   `;
   render() { return html`<div class="card"><div class="content"><slot></slot></div></div>`; }
 }
@@ -162,7 +188,17 @@ class A2uiResult extends A2uiBase {
 class A2uiTable extends A2uiBase {
   static properties = { data: { type: String } };
   static styles = css`
-    :host { display: block; margin: 28px 0; overflow-x: auto; }
+    :host { 
+      display: block; margin: 28px 0; overflow-x: auto; 
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(165, 180, 252, 0.3) rgba(255, 255, 255, 0.05);
+    }
+    :host::-webkit-scrollbar { height: 8px; }
+    :host::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
+    :host::-webkit-scrollbar-thumb { background: rgba(165, 180, 252, 0.3); border-radius: 4px; }
+    :host::-webkit-scrollbar-thumb:hover { background: rgba(165, 180, 252, 0.5); }
+    
     .outer-wrap {
       border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(32px);
@@ -179,6 +215,22 @@ class A2uiTable extends A2uiBase {
       tbody td { color: #cbd5e1; border-bottom-color: rgba(255, 255, 255, 0.04); }
       tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
       tbody tr:hover { background: rgba(79, 70, 229, 0.12); }
+    }
+    
+    @media (max-width: 768px) {
+      :host { margin: 20px 0; }
+      .outer-wrap { border-radius: 20px; }
+      table { font-size: 13px; }
+      thead th { padding: 14px 16px; font-size: 12px; }
+      tbody td { padding: 14px 16px; }
+    }
+    
+    @media (max-width: 375px) {
+      :host { margin: 16px 0; }
+      .outer-wrap { border-radius: 16px; }
+      table { font-size: 12px; }
+      thead th { padding: 12px 12px; font-size: 11px; }
+      tbody td { padding: 12px 12px; }
     }
   `;
   declare data: string | undefined;
@@ -211,8 +263,8 @@ class A2uiTabs extends A2uiBase {
   static properties = { data: { type: String }, active: { type: Number } };
   static styles = css`
     :host { display: block; margin: 12px 0; }
-    .bar { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    .tab { flex: 1; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; color: rgba(255, 255, 255, 0.5); font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.5s ease; }
+    .bar { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab { flex: 1; min-width: fit-content; padding: 8px 12px; border-radius: 8px; border: none; background: transparent; color: rgba(255, 255, 255, 0.5); font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.5s ease; min-height: 44px; display: flex; align-items: center; justify-content: center; }
     .tab:hover { color: #ffffff; background: rgba(255, 255, 255, 0.08); }
     .tab.active { background: rgba(255, 255, 255, 0.12); color: #a5b4fc; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
     .content-area { padding: 16px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; line-height: 1.6; color: #e2e8f0; min-height: 100px; backdrop-filter: blur(32px); white-space: pre-wrap; }
@@ -222,6 +274,17 @@ class A2uiTabs extends A2uiBase {
       .tab:hover { color: #ffffff; } 
       .tab.active { background: rgba(255, 255, 255, 0.12); color: #a5b4fc; } 
       .content-area { background: rgba(15, 23, 42, 0.45); border-color: rgba(255, 255, 255, 0.06); color: #e2e8f0; } 
+    }
+    
+    @media (max-width: 768px) {
+      .bar { flex-wrap: nowrap; }
+      .tab { padding: 10px 16px; font-size: 12px; white-space: nowrap; }
+      .content-area { padding: 14px 16px; font-size: 13px; }
+    }
+    
+    @media (max-width: 375px) {
+      .tab { padding: 8px 12px; font-size: 11px; }
+      .content-area { padding: 12px 14px; font-size: 12px; }
     }
   `;
   declare data: string | undefined;
@@ -258,13 +321,37 @@ class A2uiCode extends A2uiBase {
       justify-content: space-between; align-items: center; 
     }
     .lang-badge { padding: 5px 12px; border-radius: 8px; background: rgba(165, 180, 252, 0.1); color: #a5b4fc; }
-    pre { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(40px); padding: 28px; margin: 0; overflow: auto; font-size: 14px; line-height: 1.7; border: 1px solid rgba(255, 255, 255, 0.08); border-top: none; }
+    pre { 
+      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(40px); padding: 28px; margin: 0; 
+      overflow: auto; font-size: 14px; line-height: 1.7; 
+      border: 1px solid rgba(255, 255, 255, 0.08); border-top: none;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(165, 180, 252, 0.3) rgba(255, 255, 255, 0.05);
+    }
+    pre::-webkit-scrollbar { height: 8px; width: 8px; }
+    pre::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+    pre::-webkit-scrollbar-thumb { background: rgba(165, 180, 252, 0.3); border-radius: 4px; }
+    pre::-webkit-scrollbar-thumb:hover { background: rgba(165, 180, 252, 0.5); }
     code { font-family: "JetBrains Mono", ui-monospace, monospace; color: #e2e8f0; }
     @media (prefers-color-scheme: dark) {
       .header { background: rgba(15, 23, 42, 0.8); color: #94a3b8; border-bottom-color: rgba(255,255,255,0.06); }
       .lang-badge { background: rgba(165, 180, 252, 0.1); color: #a5b4fc; }
       pre { background: rgba(15, 23, 42, 0.6); border-color: rgba(255, 255, 255, 0.08); }
       code { color: #e2e8f0; }
+    }
+    
+    @media (max-width: 768px) {
+      :host { margin: 20px 0; border-radius: 20px; }
+      .header { padding: 12px 20px; font-size: 9px; }
+      .lang-badge { padding: 4px 10px; font-size: 10px; }
+      pre { padding: 20px; font-size: 13px; }
+    }
+    
+    @media (max-width: 375px) {
+      :host { margin: 16px 0; border-radius: 16px; }
+      .header { padding: 10px 16px; }
+      pre { padding: 16px; font-size: 12px; }
     }
   `;
   declare language: string | undefined;
@@ -287,6 +374,16 @@ class A2uiList extends A2uiBase {
     li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; color: #cbd5e1; backdrop-filter: blur(24px); transition: all 0.5s ease; }
     li:hover { background: rgba(255, 255, 255, 0.12); transform: translateX(8px); }
     @media (prefers-color-scheme: dark) { li { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.08); color: #cbd5e1; } }
+    
+    @media (max-width: 768px) {
+      ul { gap: 6px; }
+      li { padding: 10px 14px; font-size: 13px; border-radius: 14px; gap: 10px; }
+      li:hover { transform: translateX(4px); }
+    }
+    
+    @media (max-width: 375px) {
+      li { padding: 8px 12px; font-size: 12px; border-radius: 12px; }
+    }
   `;
   declare items: any[] | undefined;
   declare data: string | undefined;
@@ -333,6 +430,20 @@ class A2uiProgress extends A2uiBase {
     .track { height: 16px; width: 100%; border-radius: 9999px; background: rgba(0, 0, 0, 0.05); overflow: hidden; position: relative; }
     .fill { height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #4f46e5, #9333ea, #ec4899); transition: width 1.5s ease; }
     @media (prefers-color-scheme: dark) { .label { color: #f1f5f9; } .track { background: rgba(255, 255, 255, 0.1); } .pct { background: rgba(255, 255, 255, 0.1); color: #a5b4fc; } }
+    
+    @media (max-width: 768px) {
+      :host { margin: 20px 0; }
+      .header { margin-bottom: 12px; }
+      .label { font-size: 14px; }
+      .pct { font-size: 11px; padding: 4px 10px; }
+      .track { height: 14px; }
+    }
+    
+    @media (max-width: 375px) {
+      :host { margin: 16px 0; }
+      .label { font-size: 13px; }
+      .track { height: 12px; }
+    }
   `;
   declare value: number | undefined;
   declare data: string | undefined;
