@@ -313,7 +313,7 @@ const geminiSearch = async (
         ["system", "You are an agent with real-time web search capabilities. You MUST use the googleSearch tool to fetch current, up-to-date information for EVERY query. Do NOT rely on your training data - always perform a live web search first."],
         ["system", "CRITICAL: Always invoke the googleSearch tool before answering. Search for the most relevant and recent information related to the user's query."],
         ["system", "IMAGE SEARCH REQUIREMENTS:\n- When users request images, you MUST find DIRECT image URLs that end in image extensions (.jpg, .jpeg, .png, .gif, .webp)\n- AVOID Wikipedia/Wikimedia URLs as they often have CORS restrictions and 404 errors\n- PRIORITIZE these reliable image sources:\n  * Unsplash CDN: images.unsplash.com\n  * Pexels CDN: images.pexels.com\n  * Imgur: i.imgur.com\n  * Flickr CDN: live.staticflickr.com\n  * Major news sites: cdn.cnn.com, static01.nyt.com\n  * Stock photo sites with direct CDN URLs\n- Search query format: '[subject] high quality image direct URL'\n- VERIFY the URL ends with an image extension before using it\n- If you cannot find a direct image URL, use the RESULT component instead with a description and search link\n- Example GOOD URL: https://images.unsplash.com/photo-1234567890/cat.jpg\n- Example BAD URL: https://en.wikipedia.org/wiki/File:Cat.jpg (Wikipedia page, not direct image)\n- Example BAD URL: https://upload.wikimedia.org/... (often has CORS issues)"],
-        ["system", "VIDEO SEARCH REQUIREMENTS:\n- IMPORTANT: Due to embedding restrictions, use the RESULT component instead of the video component\n- When users request videos, search for relevant videos and provide:\n  1. A brief description of the video you found\n  2. A clickable YouTube link using this format: <a href=\"https://www.youtube.com/watch?v=VIDEO_ID\" target=\"_blank\">Watch on YouTube</a>\n- Prioritize official sources: sports leagues (NBA, FIFA), music labels (VEVO), news (BBC, CNN), education (TED, National Geographic)\n- Extract the 11-character video ID from search results (format: youtube.com/watch?v=VIDEO_ID)\n- Example response: <section>Answer</section><a2-result>I found \"Messi Amazing Goal vs Real Madrid\" from the official La Liga channel. <a href=\"https://www.youtube.com/watch?v=abc12345678\" target=\"_blank\" style=\"color: #4f46e5; text-decoration: underline;\">Watch on YouTube</a></a2-result>\n- DO NOT use the video component - always use result component with YouTube links"],
+        ["system", "VIDEO SEARCH REQUIREMENTS:\n- When users request videos, search for relevant YouTube videos and use the VIDEO component to embed them\n- Extract the 11-character video ID from search results (format: youtube.com/watch?v=VIDEO_ID)\n- Convert to embed URL format: https://www.youtube.com/embed/VIDEO_ID\n- Prioritize official sources: sports leagues (NBA, FIFA), music labels (VEVO), news (BBC, CNN), education (TED, National Geographic)\n- ALWAYS use the video component with proper JSON format\n- Example response: <section>Answer</section><a2-video>{\"id\": \"video-1\", \"component\": { \"Video\": { \"url\": { \"literalString\": \"https://www.youtube.com/embed/abc12345678\" } } }}</a2-video>\n- Make sure the video ID is a real 11-character YouTube ID, not a placeholder"],
         ["system", a2uiPrompt],
         ["user", lastUser],
       ] as any),
@@ -360,31 +360,12 @@ const geminiSearch = async (
       }
     }
     
-    // Validate video URLs if this is a video response
+    // Log video response for debugging
     if (sel === "video" && text.includes("<a2-video>")) {
-      // Check for placeholder or invalid video IDs (all same character repeated 11 times)
       const videoIdPattern = /https:\/\/www\.youtube\.com\/embed\/([A-Za-z0-9_-]{11})/;
       const match = text.match(videoIdPattern);
-      
       if (match) {
-        const videoId = match[1];
-        console.log("Extracted video ID:", videoId);
-        
-        // Check if it's a placeholder (all same character)
-        const isPlaceholder = /^(.)\1{10}$/.test(videoId);
-        console.log("Is placeholder?", isPlaceholder);
-        
-        if (isPlaceholder) {
-          console.warn("Detected placeholder video ID:", videoId);
-          // Try to extract video title from the response
-          const titleMatch = text.match(/"([^"]+)"/);
-          const videoTitle = titleMatch ? titleMatch[1] : lastUser;
-          const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(videoTitle)}`;
-          
-          text = `<section>Answer</section><a2-result>I found a video titled "<strong>${videoTitle}</strong>" but cannot embed it directly. <a href="${searchUrl}" target="_blank" style="color: #4f46e5; text-decoration: underline;">Click here to watch it on YouTube</a>.</a2-result>`;
-        } else {
-          console.log("Valid video ID detected, keeping original response");
-        }
+        console.log("Video embed URL found:", match[0]);
       }
     }
 
