@@ -396,6 +396,69 @@ class A2uiList extends A2uiBase {
   }
 }
 
+class A2uiImage extends A2uiBase {
+  static properties = { data: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 28px 0; overflow: hidden; border-radius: 28px; box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25); position: relative; }
+    .image-container { position: relative; width: 100%; background: rgba(0,0,0,0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .image-container.hero { min-height: 400px; }
+    .image-container.thumbnail { min-height: 150px; max-height: 200px; }
+    .image-container.icon { min-height: 64px; max-height: 100px; }
+    .image-container.content { min-height: 200px; max-height: 400px; }
+    
+    img { width: 100%; height: 100%; display: block; }
+    img.cover { object-fit: cover; }
+    img.contain { object-fit: contain; }
+    img.fill { object-fit: fill; }
+    
+    .loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); color: white; }
+    .error-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.9); color: white; padding: 20px; text-align: center; gap: 12px; }
+    .error-icon { font-size: 48px; opacity: 0.5; }
+    
+    @media (prefers-color-scheme: dark) { 
+      .image-container { background: rgba(0,0,0,0.3); border-color: rgba(255, 255, 255, 0.08); } 
+    }
+    
+    @media (max-width: 768px) {
+      :host { margin: 20px 0; border-radius: 20px; }
+      .image-container.hero { min-height: 250px; }
+      .image-container.thumbnail { min-height: 120px; max-height: 150px; }
+      .image-container.content { min-height: 150px; max-height: 300px; }
+    }
+    
+    @media (max-width: 375px) {
+      :host { margin: 16px 0; border-radius: 16px; }
+      .image-container.hero { min-height: 200px; }
+      .image-container.thumbnail { min-height: 100px; max-height: 120px; }
+    }
+  `;
+  declare data: string | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const imageUrl = parsed?.component?.Image?.url?.literalString;
+    const fit = parsed?.component?.Image?.fit || "cover";
+    const usageHint = parsed?.component?.Image?.usageHint || "content";
+    
+    if (!imageUrl) {
+      return html`<div class="image-container ${usageHint}"><div class="error-wrap"><div class="error-icon">🖼️</div><div>No valid image URL provided</div></div></div>`;
+    }
+    
+    return html`
+      <div class="image-container ${usageHint}">
+        <img src="${imageUrl}" alt="Image" class="${fit}" loading="lazy" @error=${(e: Event) => {
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          const container = target.parentElement;
+          if (container) {
+            container.innerHTML = '<div class="error-wrap"><div class="error-icon">⚠️</div><div>Failed to load image</div></div>';
+          }
+        }} />
+      </div>
+    `;
+  }
+}
+
 class A2uiVideo extends A2uiBase {
   static properties = { data: { type: String } };
   static styles = css`
@@ -479,6 +542,7 @@ const mapping = {
   "a2-code": A2uiCode, "a2ui-code": A2uiCodeLegacy,
   "a2-list": A2uiList, "a2ui-list": A2uiListLegacy,
   "a2-progress": A2uiProgress, "a2ui-progress": A2uiProgressLegacy,
+  "a2-image": A2uiImage,
   "a2-video": A2uiVideo
 };
 
