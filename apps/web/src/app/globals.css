@@ -161,6 +161,8 @@ body .copilotKitChat {
   background: transparent !important;
   padding: 1.5rem !important;
   gap: 1.5rem !important;
+  overflow-y: auto !important;
+  max-height: 100% !important;
 }
 
 .premium-chat-customization .copilotKitMessage {
@@ -182,6 +184,8 @@ body .copilotKitChat {
   backdrop-filter: blur(8px) !important;
   color: var(--a2-text-main, rgba(255, 255, 255, 0.9)) !important;
   white-space: pre-wrap !important;
+  padding: 1.25rem !important;
+  position: relative !important;
 }
 
 .premium-chat-customization .copilotKitMessage--assistant .copilotKitMessage__label {
@@ -264,10 +268,22 @@ body .copilotKitChat {
 .premium-chat-customization .copilotKitButton {
   border-radius: 100px !important;
   transition: all 0.2s ease !important;
+  margin: 0.25rem !important;
 }
 
 .premium-chat-customization .copilotKitButton:hover {
   transform: scale(1.05) !important;
+}
+
+/* Fix action buttons positioning to stay within message borders */
+.premium-chat-customization .copilotKitMessage--assistant > div:last-child,
+.premium-chat-customization [class*="actions"],
+.premium-chat-customization [class*="Actions"] {
+  margin-top: 0.75rem !important;
+  padding-top: 0.5rem !important;
+  display: flex !important;
+  gap: 0.5rem !important;
+  flex-wrap: wrap !important;
 }
 
 .premium-chat-customization .copilotKitInput textarea {
