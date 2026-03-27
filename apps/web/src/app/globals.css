@@ -279,8 +279,8 @@ body .copilotKitChat {
 .premium-chat-customization .copilotKitMessage--assistant > div:last-child,
 .premium-chat-customization [class*="actions"],
 .premium-chat-customization [class*="Actions"] {
-  margin-top: 0.75rem !important;
-  padding-top: 0.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
   display: flex !important;
   gap: 0.5rem !important;
   flex-wrap: wrap !important;
