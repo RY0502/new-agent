@@ -1,0 +1,12 @@
+{
+  "user_query": "What is the Eiffel Tower?",
+  "agent_response": {
+    "components": [
+      {
+        "Result": {
+          "content": "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It was constructed from 1887 to 1889 as the centrepiece of the 1889 World's Fair."
+        }
+      }
+    ]
+  }
+}
