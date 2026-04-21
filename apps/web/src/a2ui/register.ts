@@ -44,6 +44,32 @@ function safeParseJSON(text: string) {
   try { return JSON.parse(cleaned); } catch (e) { return null; }
 }
 
+function coerceToNumber(value: any): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const raw = value.trim().toLowerCase();
+    if (!raw) return 0;
+
+    const unitMatch = raw.match(/^(-?[\d,.]+)\s*([kmbt%])?$/i);
+    if (unitMatch) {
+      const n = parseFloat(unitMatch[1].replace(/,/g, ""));
+      if (!Number.isFinite(n)) return 0;
+      const u = unitMatch[2];
+      if (u === "k") return n * 1e3;
+      if (u === "m") return n * 1e6;
+      if (u === "b") return n * 1e9;
+      if (u === "t") return n * 1e12;
+      if (u === "%") return n;
+      return n;
+    }
+
+    const cleaned = raw.replace(/[^\d.-]/g, "");
+    const parsed = parseFloat(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
 /**
  * Base class with MutationObserver for streaming reactivity.
  */
@@ -119,7 +145,7 @@ class A2uiStatus extends A2uiBase {
   declare isOpen: boolean;
   constructor() { super(); this.isOpen = false; }
   render() {
-    const raw = this.text || (this.textContent || "");
+    const raw = (this.text || (this.textContent || "")).replace(/\\n/g, "\n");
     const parts = raw.split(/\r?\n+/).map((p) => p.trim()).filter(Boolean);
     if (parts.length === 0) return html``;
     return html`
@@ -495,6 +521,88 @@ class A2uiVideo extends A2uiBase {
   }
 }
 
+class A2uiChart extends A2uiBase {
+  static properties = { data: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 20px 0; }
+    .wrap { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 16px; }
+    .title { font-size: 14px; font-weight: 800; color: #f8fafc; margin-bottom: 12px; }
+    .axes { display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); gap: 10px; align-items: end; height: 220px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .bar { width: 100%; border-radius: 10px 10px 6px 6px; background: linear-gradient(180deg, #6366f1, #22d3ee); min-height: 2px; }
+    .point { width: 8px; height: 8px; border-radius: 9999px; background: #22d3ee; box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3); }
+    .label { font-size: 11px; color: #cbd5e1; text-align: center; word-break: break-word; }
+    .value { font-size: 10px; color: #94a3b8; }
+    .line-wrap { position: relative; height: 220px; }
+    svg { width: 100%; height: 100%; }
+    .line-path { fill: none; stroke: #22d3ee; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .line-grid { stroke: rgba(148, 163, 184, 0.2); stroke-width: 1; }
+    .xlabels { display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+  `;
+  declare data: string | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const chart = parsed?.component?.Chart || parsed?.Chart || parsed;
+    const chartType = chart?.type === "line" ? "line" : "bar";
+    const title = chart?.title || "Chart";
+    const points = Array.isArray(chart?.data) ? chart.data : [];
+
+    if (!points.length) {
+      return html`<div class="wrap"><div class="title">${title}</div><div class="label">No chart data available</div></div>`;
+    }
+
+    const values = points.map((p: any) => coerceToNumber(p?.value));
+    const maxValue = Math.max(...values, 1);
+    const count = String(points.length);
+
+    if (chartType === "line") {
+      const width = 1000;
+      const height = 220;
+      const xStep = points.length > 1 ? width / (points.length - 1) : width;
+      const coords = points.map((p: any, idx: number) => {
+        const x = points.length > 1 ? idx * xStep : width / 2;
+        const y = height - (coerceToNumber(p?.value) / maxValue) * (height - 12) - 6;
+        return `${x},${y}`;
+      }).join(" ");
+
+      return html`
+        <div class="wrap" style=${`--count:${count}`}>
+          <div class="title">${title}</div>
+          <div class="line-wrap">
+            <svg viewBox="0 0 1000 220" preserveAspectRatio="none">
+              <line class="line-grid" x1="0" y1="110" x2="1000" y2="110"></line>
+              <polyline class="line-path" points="${coords}"></polyline>
+            </svg>
+          </div>
+          <div class="xlabels">
+            ${points.map((p: any) => html`<div class="label">${String(p?.label || "")}</div>`)}
+          </div>
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="wrap" style=${`--count:${count}`}>
+        <div class="title">${title}</div>
+        <div class="axes">
+          ${points.map((p: any) => {
+            const v = coerceToNumber(p?.value);
+            const h = `${Math.max(2, Math.round((v / maxValue) * 100))}%`;
+            return html`
+              <div class="bar-col">
+                <div class="value">${v}</div>
+                <div class="bar" style=${`height:${h}`}></div>
+                <div class="label">${String(p?.label || "")}</div>
+              </div>
+            `;
+          })}
+        </div>
+      </div>
+    `;
+  }
+}
+
 class A2uiProgress extends A2uiBase {
   static properties = { value: { type: Number }, data: { type: String } };
   static styles = css`
@@ -544,6 +652,7 @@ class A2uiTabsLegacy extends A2uiTabs { }
 class A2uiCodeLegacy extends A2uiCode { }
 class A2uiListLegacy extends A2uiList { }
 class A2uiProgressLegacy extends A2uiProgress { }
+class A2uiChartLegacy extends A2uiChart { }
 
 const mapping = {
   "a2-status": A2uiStatus, "a2ui-status": A2uiStatusLegacy,
@@ -554,6 +663,7 @@ const mapping = {
   "a2-code": A2uiCode, "a2ui-code": A2uiCodeLegacy,
   "a2-list": A2uiList, "a2ui-list": A2uiListLegacy,
   "a2-progress": A2uiProgress, "a2ui-progress": A2uiProgressLegacy,
+  "a2-chart": A2uiChart, "a2ui-chart": A2uiChartLegacy,
   "a2-image": A2uiImage,
   "a2-video": A2uiVideo
 };
