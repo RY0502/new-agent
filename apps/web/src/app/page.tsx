@@ -33,6 +33,7 @@ declare global {
       'a2-tabs': any;
       'a2-image': any;
       'a2-video': any;
+      'a2-chart': any;
       'a2ui-status': any;
       'a2ui-section': any;
       'a2ui-result': any;
@@ -41,6 +42,7 @@ declare global {
       'a2ui-table': any;
       'a2ui-tabs': any;
       'a2ui-code': any;
+      'a2ui-chart': any;
     }
   }
 }
@@ -79,11 +81,11 @@ function LoadingBar({ active }: { active: boolean }) {
 function ThinkingIndicator({ active }: { active: boolean }) {
   if (!active) return null;
   return (
-    <div className="flex items-center space-x-2 px-6 py-4 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex space-x-2 items-center bg-white/10 backdrop-blur-xl border border-white/20 rounded-[20px] px-5 py-3 shadow-2xl">
-        <div className="h-2 w-2 bg-indigo-400 rounded-full animate-pulse mr-2" />
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-white">Thinking</span>
-        <div className="flex gap-1 ml-4">
+    <div className="flex items-center px-6 py-4 mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[20px] px-5 py-3 shadow-2xl">
+        <div className="h-2 w-2 bg-indigo-400 rounded-full animate-pulse flex-shrink-0" />
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-white whitespace-nowrap">Thinking</span>
+        <div className="flex gap-1.5 items-center">
           <div className="h-1 w-1 bg-white/40 rounded-full animate-bounce [animation-duration:0.8s]" />
           <div className="h-1 w-1 bg-white/40 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.15s]" />
           <div className="h-1 w-1 bg-white/40 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.3s]" />
@@ -185,6 +187,11 @@ function VideoTag({ children }: { children?: React.ReactNode }) {
   // @ts-ignore
   return <a2-video data={text}>{children}</a2-video>;
 }
+function ChartTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  // @ts-ignore
+  return <a2-chart data={text}>{children}</a2-chart>;
+}
 
 export default function Home() {
   const { loggedIn, loading, login } = useAuthStatus();
@@ -203,39 +210,33 @@ export default function Home() {
 
   useEffect(() => {
     if (!streaming) return;
-    
+
     let rafId: number;
     let lastScrollTime = 0;
     const SCROLL_THROTTLE = 100; // ms between scroll checks
-    
+
     const scrollToBottom = (timestamp: number) => {
       if (!streaming) return; // Stop if streaming ended
-      
+
       // Throttle scroll checks
       if (timestamp - lastScrollTime < SCROLL_THROTTLE) {
         rafId = requestAnimationFrame(scrollToBottom);
         return;
       }
       lastScrollTime = timestamp;
-      
+
       const container = scrollContainerRef.current;
-      const end = endRef.current;
-      
-      if (container && end) {
-        const containerRect = container.getBoundingClientRect();
-        const endRect = end.getBoundingClientRect();
-        
-        // Only auto-scroll if user is near the bottom (within 100px)
-        const isNearBottom = endRect.bottom - containerRect.bottom < 100;
-        
-        if (isNearBottom) {
-          end.scrollIntoView({ behavior: "smooth", block: "end" });
+
+      if (container) {
+        const messagesList = container.querySelector(".copilotKitMessagesList") as HTMLElement | null;
+        if (messagesList) {
+          messagesList.scrollTop = messagesList.scrollHeight;
         }
       }
-      
+
       rafId = requestAnimationFrame(scrollToBottom);
     };
-    
+
     rafId = requestAnimationFrame(scrollToBottom);
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
@@ -290,6 +291,7 @@ export default function Home() {
                     "a2-code": CodeTag,
                     "a2-image": ImageTag,
                     "a2-video": VideoTag,
+                    "a2-chart": ChartTag,
 
                     // Legacy/Fallback mapping
                     status: StatusTag, wow: StatusTag, result: ResultTag,
@@ -297,11 +299,17 @@ export default function Home() {
                     table: TableTag, image: ImageTag, code: CodeTag, column: ColumnTag,
                     tab: TabsTag, text: TextTag, icon: IconTag, divider: DividerTag,
                     button: ButtonTag, textfield: TextFieldTag, checkbox: CheckBoxTag,
-                    card: CardTag, modal: ModalTag, tabs: TabsTag, video: VideoTag,
+                    card: CardTag, modal: ModalTag, tabs: TabsTag, video: VideoTag, chart: ChartTag,
                   }}
                   onInProgress={(p) => {
                     setStreaming(p);
-                    if (p) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+                    if (p) {
+                      const container = scrollContainerRef.current;
+                      const messagesList = container?.querySelector(".copilotKitMessagesList") as HTMLElement | null;
+                      if (messagesList) {
+                        messagesList.scrollTop = messagesList.scrollHeight;
+                      }
+                    }
                   }}
                   labels={{
                     title: "Your Assistant",
