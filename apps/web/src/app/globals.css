@@ -143,7 +143,6 @@ body {
 html .copilotKitChat,
 body .copilotKitChat {
   border-radius: clamp(16px, 2.5vw, 32px) !important;
-  overflow: hidden !important;
 }
 
 /* CopilotKit Premium Overrides */
@@ -155,6 +154,13 @@ body .copilotKitChat {
   --copilot-kit-border-color: var(--a2-card-border, rgba(255, 255, 255, 0.1)) !important;
   height: 100% !important;
   width: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .premium-chat-customization .copilotKitMessagesList {
@@ -162,7 +168,9 @@ body .copilotKitChat {
   padding: 1.5rem !important;
   gap: 1.5rem !important;
   overflow-y: auto !important;
-  max-height: 100% !important;
+  overflow-x: hidden !important;
+  flex: 1 !important;
+  min-height: 0 !important;
 }
 
 .premium-chat-customization .copilotKitMessage {
@@ -220,10 +228,17 @@ body .copilotKitChat {
   color: #ffffff !important;
   font-size: 1rem !important;
   box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  min-height: auto !important;
 }
 
 .premium-chat-customization .copilotKitInput::placeholder {
   color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Ensure input stays visible */
+.premium-chat-customization .copilotKitInputForm {
+  flex-shrink: 0 !important;
 }
 
 /* Fix visibility for headings and labels in the assistant response */
