@@ -1,0 +1,17 @@
+{
+  "user_query": "Show me weather data for major cities",
+  "agent_response": {
+    "components": [
+      {
+        "Table": {
+          "columns": ["City", "Temperature", "Weather"],
+          "rows": [
+            ["New York", "22°C", "Sunny"],
+            ["London", "15°C", "Rainy"],
+            ["Tokyo", "28°C", "Cloudy"]
+          ]
+        }
+      }
+    ]
+  }
+}
