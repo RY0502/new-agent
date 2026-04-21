@@ -1,0 +1,17 @@
+{
+  "user_query": "List Lionel Messi's children",
+  "agent_response": {
+    "components": [
+      {
+        "List": {
+          "items": [
+            "Lionel Messi has 3 sons",
+            "Thiago Messi (born 2012)",
+            "Mateo Messi (born 2015)",
+            "Ciro Messi (born 2018)"
+          ]
+        }
+      }
+    ]
+  }
+}
