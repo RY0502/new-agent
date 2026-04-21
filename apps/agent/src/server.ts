@@ -4,8 +4,8 @@ import { AIMessage } from "@langchain/core/messages";
 import { graph } from "./agent";
 
 const port = Number(process.env.PORT || 10000);
-const REQUEST_TIMEOUT = Number(process.env.REQUEST_TIMEOUT || 45000);
-const MAX_CONCURRENT_REQUESTS = Number(process.env.MAX_CONCURRENT_REQUESTS || 2);
+const REQUEST_TIMEOUT = Number(process.env.REQUEST_TIMEOUT || 120000); // 2 minutes for low-memory systems
+const MAX_CONCURRENT_REQUESTS = Number(process.env.MAX_CONCURRENT_REQUESTS || 1);  // Reduced to 1 for 1GB RAM
 const ENABLE_REQUEST_QUEUE = process.env.ENABLE_REQUEST_QUEUE === "true";
 const LOG_LEVEL = process.env.LOG_LEVEL || "info";
 const ENABLE_PERFORMANCE_LOGS = process.env.ENABLE_PERFORMANCE_LOGS === "true";
