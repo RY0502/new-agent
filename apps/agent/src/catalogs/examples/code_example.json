@@ -1,0 +1,13 @@
+{
+  "user_query": "Show me a Python fibonacci function",
+  "agent_response": {
+    "components": [
+      {
+        "Code": {
+          "language": "python",
+          "code": "def fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        yield a\n        a, b = b, a + b"
+        }
+      }
+    ]
+  }
+}
