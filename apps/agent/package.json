@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=768' npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser",
     "dev:low-mem": "NODE_OPTIONS='--max-old-space-size=512' npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser",
+    "dev:1gb": "NODE_OPTIONS='--max-old-space-size=384 --gc-interval=100' npx @langchain/langgraph-cli dev --host 0.0.0.0 --port 8123 --no-browser",
     "start": "tsx src/server.ts",
-    "start:prod": "NODE_ENV=production tsx src/server.ts"
+    "start:prod": "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=512 --gc-interval=100' tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,7 @@
   },
   "dependencies": {
     "@copilotkit/sdk-js": "1.51.4",
-    "@langchain/core": "^0.3.58",
+    "@langchain/core": "^1.0.1",
     "@langchain/langgraph": "1.0.2",
     "@langchain/langgraph-checkpoint": "1.0.0",
     "@langchain/openai": "^1.1.3",
