@@ -1,0 +1,198 @@
+{
+  "catalogId": "chat-agent/custom@1.0.0",
+  "components": {
+    "Result": {
+      "type": "object",
+      "description": "A card component for displaying text content, markdown, or general responses",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The text or markdown content to display"
+        }
+      },
+      "required": ["content"]
+    },
+    "List": {
+      "type": "object",
+      "description": "A bulleted or numbered list component",
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "Array of list items",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["items"]
+    },
+    "Table": {
+      "type": "object",
+      "description": "A data table component for displaying tabular data",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "description": "Column headers",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "description": "Table rows, each row is an array of values",
+          "items": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "required": ["columns", "rows"]
+    },
+    "Tabs": {
+      "type": "object",
+      "description": "A tabbed view component for organizing content",
+      "properties": {
+        "tabItems": {
+          "type": "array",
+          "description": "Array of tab items",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Tab title"
+              },
+              "content": {
+                "type": "string",
+                "description": "Tab content"
+              }
+            },
+            "required": ["title", "content"]
+          }
+        }
+      },
+      "required": ["tabItems"]
+    },
+    "Code": {
+      "type": "object",
+      "description": "A syntax-highlighted code block component",
+      "properties": {
+        "language": {
+          "type": "string",
+          "description": "Programming language for syntax highlighting (e.g., python, javascript, typescript)"
+        },
+        "code": {
+          "type": "string",
+          "description": "The source code to display"
+        }
+      },
+      "required": ["code"]
+    },
+    "Video": {
+      "type": "object",
+      "description": "An embedded video player component for YouTube videos",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the video component"
+        },
+        "url": {
+          "type": "string",
+          "description": "YouTube embed URL in format: https://www.youtube.com/embed/VIDEO_ID",
+          "pattern": "^https://www\\.youtube\\.com/embed/[A-Za-z0-9_-]{11}$"
+        }
+      },
+      "required": ["id", "url"]
+    },
+    "Progress": {
+      "type": "object",
+      "description": "A progress bar component",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label for the progress bar"
+        },
+        "value": {
+          "type": "number",
+          "description": "Progress value between 0 and 1",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": ["value"]
+    },
+    "Image": {
+      "type": "object",
+      "description": "An image component with responsive sizing and optional fit modes",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the image component"
+        },
+        "url": {
+          "type": "string",
+          "description": "Direct HTTPS URL to image file (jpg, png, gif, webp, svg). Must be from reliable sources like Imgur, Flickr, or Reddit."
+        },
+        "fit": {
+          "type": "string",
+          "description": "How the image should fit: 'cover' (fills container, may crop), 'contain' (fits entire image), 'fill' (stretches to fill)",
+          "enum": ["cover", "contain", "fill"]
+        },
+        "usageHint": {
+          "type": "string",
+          "description": "Usage context: 'hero' (large banner), 'thumbnail' (small preview), 'icon' (small icon), 'content' (inline content)",
+          "enum": ["hero", "thumbnail", "icon", "content"]
+        }
+      },
+      "required": ["id", "url"]
+    },
+    "Chart": {
+      "type": "object",
+      "description": "A chart component for visualizing numeric data as bar or line chart",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chart component"
+        },
+        "type": {
+          "type": "string",
+          "description": "Chart type",
+          "enum": ["bar", "line"]
+        },
+        "title": {
+          "type": "string",
+          "description": "Chart title"
+        },
+        "xLabel": {
+          "type": "string",
+          "description": "Optional x-axis label"
+        },
+        "yLabel": {
+          "type": "string",
+          "description": "Optional y-axis label"
+        },
+        "data": {
+          "type": "array",
+          "description": "Series data points",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Data point label"
+              },
+              "value": {
+                "type": "number",
+                "description": "Data point value"
+              }
+            },
+            "required": ["label", "value"]
+          }
+        }
+      },
+      "required": ["type", "data"]
+    }
+  },
+  "functions": [],
+  "theme": {}
+}
