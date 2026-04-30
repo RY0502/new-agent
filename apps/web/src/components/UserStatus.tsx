@@ -96,10 +96,11 @@ export default function UserStatus() {
         variant="glass"
         size="sm"
         onClick={logout}
-        className="rounded-full h-8 px-3 border-white/5 hover:bg-white/5 text-white/60 hover:text-white transition-all"
+        aria-label="Sign Out"
+        className="rounded-full h-8 px-2 sm:px-3 border-white/5 hover:bg-white/5 text-white/60 hover:text-white transition-all"
       >
-        <LogOut className="h-3.5 w-3.5 mr-1.5" />
-        <span className="text-xs">Sign Out</span>
+        <LogOut className="h-3.5 w-3.5 sm:mr-1.5" />
+        <span className="text-xs hidden sm:inline">Sign Out</span>
       </Button>
     </div>
   );
