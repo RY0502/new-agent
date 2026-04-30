@@ -86,6 +86,7 @@ export function convertToLegacyFormat(components: ComponentMessage[]): string {
             Chart: {
               type: componentData.type || 'bar',
               title: componentData.title || '',
+              subtitle: componentData.subtitle || '',
               xLabel: componentData.xLabel || '',
               yLabel: componentData.yLabel || '',
               data: Array.isArray(componentData.data) ? componentData.data : []
