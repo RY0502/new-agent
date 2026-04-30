@@ -196,7 +196,12 @@ const mistralChat = async (
     // Generate A2UI v0.9 system prompt
     const systemPrompt = a2uiSchemaManager.generateSystemPrompt(
       "You are a helpful assistant that can answer the given user query with the best of your knowledge. " +
-      "CHART RULES: When user asks for chart/graph/plot/visualize/trend, prefer the Chart component. " +
+      "CHART RULES: When user asks for chart/graph/plot/visualize/trend, use the Chart component and pick the right `type`: " +
+      "• 'bar' → comparing discrete categories (population by country, revenue per region, votes per candidate). " +
+      "• 'line' → trends over time (temperature, user growth, GDP). " +
+      "• 'area' (alias 'worm') → stock prices, financial time series, sparklines, anything with a time axis where you want a filled trend look. " +
+      "• 'pie' → parts of a whole when there are 2–6 segments (market share, budget split, demographics). " +
+      "• 'donut' → same as pie but when a total in the center adds value. " +
       "For Chart.data, each point MUST include {label, value}. value MUST be a pure number (no units/symbols like B, M, %, commas, or text). " +
       "If needed, convert values to numeric before output. " +
       "COMPONENT SELECTION: " +
@@ -267,8 +272,13 @@ const geminiSearch = async (
       "• Use Callout (variant: info|success|warning|error|quote) for tips, warnings, key insights, or quotes. " +
       "• Use Steps for tutorials / how-tos / processes. Mark current/done steps with status. " +
       "• Use Badges for tags / categories / technologies / quick keyword summaries. " +
-      "\n\nCHART RULES: When user asks for chart/graph/plot/visualize/trend, use Chart component with data points as {label, value}. " +
-      "value MUST be numeric only (no units/symbols/text). Convert values before output. " +
+      "\n\nCHART RULES: When user asks for chart/graph/plot/visualize/trend, use Chart and pick `type`: " +
+      "'bar' for category comparisons (population, revenue per region); " +
+      "'line' for general trends over time; " +
+      "'area' (or 'worm') for stock prices / financial time series / sparkline trends; " +
+      "'pie' for parts of a whole (market share, budget split, 2–6 segments); " +
+      "'donut' for pie + a total in the center. " +
+      "data points are {label, value} where value MUST be numeric only (no units/symbols/text). Convert values before output. " +
       "\\n\\nIMAGE SEARCH: When users request images, search for HTTPS URLs from reliable sources (Imgur, Flickr, Reddit). " +
       "Avoid HTTP, Wikipedia, Unsplash, Pexels. URLs must end with image extensions (.jpg, .jpeg, .png, .gif, .webp). " +
       "\\n\\nVIDEO SEARCH: For videos, search YouTube with specific keywords. Extract 11-character video ID and use embed format: https://www.youtube.com/embed/VIDEO_ID. " +
