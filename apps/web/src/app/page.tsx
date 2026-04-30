@@ -34,6 +34,11 @@ declare global {
       'a2-image': any;
       'a2-video': any;
       'a2-chart': any;
+      'a2-stat': any;
+      'a2-timeline': any;
+      'a2-callout': any;
+      'a2-steps': any;
+      'a2-badges': any;
       'a2ui-status': any;
       'a2ui-section': any;
       'a2ui-result': any;
@@ -192,6 +197,30 @@ function ChartTag({ children }: { children?: React.ReactNode }) {
   // @ts-ignore
   return <a2-chart data={text}>{children}</a2-chart>;
 }
+function StatTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  // @ts-ignore
+  return <a2-stat data={text}>{children}</a2-stat>;
+}
+function TimelineTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  // @ts-ignore
+  return <a2-timeline data={text}>{children}</a2-timeline>;
+}
+function CalloutTag({ children, ...props }: any) {
+  // @ts-ignore
+  return <a2-callout variant={props?.variant} heading={props?.heading || props?.title}>{children}</a2-callout>;
+}
+function StepsTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  // @ts-ignore
+  return <a2-steps data={text}>{children}</a2-steps>;
+}
+function BadgesTag({ children }: { children?: React.ReactNode }) {
+  const text = getNodeText(children);
+  // @ts-ignore
+  return <a2-badges data={text}>{children}</a2-badges>;
+}
 
 export default function Home() {
   const { loggedIn, loading, login } = useAuthStatus();
@@ -248,22 +277,22 @@ export default function Home() {
       <div className="aurora-bg" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.05),transparent_50%)] pointer-events-none" />
       <main className="relative z-10 flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full">
-        <header className="flex items-center justify-between w-full mb-10">
-          <div className="flex items-center space-x-3 md:space-x-4 group cursor-default">
-            <div className="relative">
+        <header className="flex items-center justify-between gap-3 w-full mb-6 md:mb-10 min-w-0">
+          <div className="flex items-center space-x-3 md:space-x-4 group cursor-default min-w-0 flex-1">
+            <div className="relative flex-shrink-0">
               <div className="absolute inset-0 bg-indigo-500 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
               <div className="relative h-12 w-12 flex items-center justify-center rounded-2xl glass border-white/10 group-hover:border-white/20 transition-all duration-300 touch-target">
                 <Sparkles className="h-6 w-6 text-indigo-400" />
               </div>
             </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight text-white">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black font-headline tracking-tight text-white truncate">
                 Definitive<span className="gradient-text">.AI</span>
               </h1>
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/30 ml-0.5">Next-Gen Agentic Interface</p>
+              <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-bold text-white/30 ml-0.5 truncate">Next-Gen Agentic Interface</p>
             </div>
           </div>
-          <div className="z-20">
+          <div className="z-20 flex-shrink-0">
             <UserStatus />
           </div>
         </header>
@@ -292,6 +321,11 @@ export default function Home() {
                     "a2-image": ImageTag,
                     "a2-video": VideoTag,
                     "a2-chart": ChartTag,
+                    "a2-stat": StatTag,
+                    "a2-timeline": TimelineTag,
+                    "a2-callout": CalloutTag,
+                    "a2-steps": StepsTag,
+                    "a2-badges": BadgesTag,
 
                     // Legacy/Fallback mapping
                     status: StatusTag, wow: StatusTag, result: ResultTag,
@@ -300,6 +334,8 @@ export default function Home() {
                     tab: TabsTag, text: TextTag, icon: IconTag, divider: DividerTag,
                     button: ButtonTag, textfield: TextFieldTag, checkbox: CheckBoxTag,
                     card: CardTag, modal: ModalTag, tabs: TabsTag, video: VideoTag, chart: ChartTag,
+                    stat: StatTag, timeline: TimelineTag, callout: CalloutTag,
+                    steps: StepsTag, badges: BadgesTag,
                   }}
                   onInProgress={(p) => {
                     setStreaming(p);
