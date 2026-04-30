@@ -525,66 +525,73 @@ class A2uiChart extends A2uiBase {
   static properties = { data: { type: String } };
   static styles = css`
     :host { display: block; margin: 20px 0; }
-    .wrap { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 16px; }
-    .title { font-size: 14px; font-weight: 800; color: #f8fafc; margin-bottom: 12px; }
+    .wrap {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(168, 85, 247, 0.03));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 22px; padding: 20px;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.25);
+    }
+    .header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .title { font-size: 15px; font-weight: 800; color: #f8fafc; letter-spacing: -0.01em; }
+    .subtitle { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
     .axes { display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); gap: 10px; align-items: end; height: 220px; }
-    .bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .bar { width: 100%; border-radius: 10px 10px 6px 6px; background: linear-gradient(180deg, #6366f1, #22d3ee); min-height: 2px; }
-    .point { width: 8px; height: 8px; border-radius: 9999px; background: #22d3ee; box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3); }
-    .label { font-size: 11px; color: #cbd5e1; text-align: center; word-break: break-word; }
-    .value { font-size: 10px; color: #94a3b8; }
-    .line-wrap { position: relative; height: 220px; }
-    svg { width: 100%; height: 100%; }
-    .line-path { fill: none; stroke: #22d3ee; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .line-grid { stroke: rgba(148, 163, 184, 0.2); stroke-width: 1; }
-    .xlabels { display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+    .bar {
+      width: 100%; border-radius: 10px 10px 6px 6px;
+      background: linear-gradient(180deg, #818cf8, #6366f1 50%, #4f46e5);
+      min-height: 2px;
+      box-shadow: 0 4px 12px -4px rgba(99, 102, 241, 0.5);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .bar-col:hover .bar { background: linear-gradient(180deg, #a5b4fc, #818cf8 50%, #6366f1); transform: translateY(-2px); }
+    .label { font-size: 11px; color: #cbd5e1; text-align: center; word-break: break-word; line-height: 1.3; }
+    .value { font-size: 10px; color: #a5b4fc; font-weight: 700; }
+
+    /* Line / area */
+    .plot-wrap { position: relative; height: 220px; }
+    svg { width: 100%; height: 100%; overflow: visible; }
+    .grid-line { stroke: rgba(148, 163, 184, 0.15); stroke-width: 1; stroke-dasharray: 3 3; }
+    .line-path { fill: none; stroke: url(#lineGradient); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 4px 12px rgba(34, 211, 238, 0.4)); }
+    .area-path { fill: url(#areaGradient); stroke: none; opacity: 0.85; }
+    .data-point { fill: #22d3ee; stroke: white; stroke-width: 1.5; transition: r 0.2s ease; }
+    .data-point:hover { r: 6; }
+    .xlabels { display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+
+    /* Pie / donut */
+    .pie-wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .pie-svg { width: 200px; height: 200px; flex-shrink: 0; filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3)); }
+    .pie-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 140px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px; transition: background 0.2s ease; }
+    .legend-item:hover { background: rgba(255, 255, 255, 0.04); }
+    .legend-swatch { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+    .legend-text { display: flex; justify-content: space-between; flex: 1; gap: 12px; align-items: baseline; min-width: 0; }
+    .legend-label { font-size: 12px; color: #e2e8f0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .legend-value { font-size: 11px; color: #94a3b8; font-weight: 700; flex-shrink: 0; }
+    .center-text { fill: #f8fafc; font-weight: 900; font-size: 28px; text-anchor: middle; dominant-baseline: central; }
+    .center-sub { fill: #94a3b8; font-size: 10px; text-anchor: middle; dominant-baseline: central; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+    .pie-slice { transition: transform 0.3s ease; transform-origin: 100px 100px; }
+    .pie-slice:hover { transform: scale(1.04); }
+
+    @media (max-width: 768px) {
+      .wrap { padding: 16px; border-radius: 18px; }
+      .axes { height: 180px; gap: 6px; }
+      .plot-wrap { height: 180px; }
+      .pie-wrap { gap: 16px; flex-direction: column; align-items: stretch; }
+      .pie-svg { width: 100%; max-width: 220px; height: auto; aspect-ratio: 1; align-self: center; }
+      .label { font-size: 10px; }
+    }
   `;
   declare data: string | undefined;
-  render() {
-    const src = (this.data || this.textContent || "").trim();
-    const parsed = safeParseJSON(src);
-    const chart = parsed?.component?.Chart || parsed?.Chart || parsed;
-    const chartType = chart?.type === "line" ? "line" : "bar";
-    const title = chart?.title || "Chart";
-    const points = Array.isArray(chart?.data) ? chart.data : [];
 
-    if (!points.length) {
-      return html`<div class="wrap"><div class="title">${title}</div><div class="label">No chart data available</div></div>`;
-    }
-
-    const values = points.map((p: any) => coerceToNumber(p?.value));
-    const maxValue = Math.max(...values, 1);
-    const count = String(points.length);
-
-    if (chartType === "line") {
-      const width = 1000;
-      const height = 220;
-      const xStep = points.length > 1 ? width / (points.length - 1) : width;
-      const coords = points.map((p: any, idx: number) => {
-        const x = points.length > 1 ? idx * xStep : width / 2;
-        const y = height - (coerceToNumber(p?.value) / maxValue) * (height - 12) - 6;
-        return `${x},${y}`;
-      }).join(" ");
-
-      return html`
-        <div class="wrap" style=${`--count:${count}`}>
-          <div class="title">${title}</div>
-          <div class="line-wrap">
-            <svg viewBox="0 0 1000 220" preserveAspectRatio="none">
-              <line class="line-grid" x1="0" y1="110" x2="1000" y2="110"></line>
-              <polyline class="line-path" points="${coords}"></polyline>
-            </svg>
-          </div>
-          <div class="xlabels">
-            ${points.map((p: any) => html`<div class="label">${String(p?.label || "")}</div>`)}
-          </div>
-        </div>
-      `;
-    }
-
+  /**
+   * Render bar chart
+   */
+  private renderBar(points: any[], maxValue: number, count: string, title: string, subtitle: string) {
     return html`
       <div class="wrap" style=${`--count:${count}`}>
-        <div class="title">${title}</div>
+        <div class="header"><div class="title">${title}</div>${subtitle ? html`<div class="subtitle">${subtitle}</div>` : ""}</div>
         <div class="axes">
           ${points.map((p: any) => {
             const v = coerceToNumber(p?.value);
@@ -600,6 +607,146 @@ class A2uiChart extends A2uiBase {
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Render line OR area (worm/sparkline) chart. SVG with optional fill.
+   */
+  private renderLineOrArea(points: any[], maxValue: number, count: string, title: string, subtitle: string, area: boolean) {
+    const width = 1000;
+    const height = 220;
+    const padTop = 10, padBottom = 10;
+    const innerH = height - padTop - padBottom;
+    const xStep = points.length > 1 ? width / (points.length - 1) : width;
+    const xy = points.map((p: any, idx: number) => {
+      const x = points.length > 1 ? idx * xStep : width / 2;
+      const y = padTop + (innerH - (coerceToNumber(p?.value) / maxValue) * innerH);
+      return { x, y, v: coerceToNumber(p?.value), label: String(p?.label || "") };
+    });
+    const linePoints = xy.map(p => `${p.x},${p.y}`).join(" ");
+    const areaPath = `M ${xy[0].x},${height} L ${xy.map(p => `${p.x},${p.y}`).join(" L ")} L ${xy[xy.length - 1].x},${height} Z`;
+
+    return html`
+      <div class="wrap" style=${`--count:${count}`}>
+        <div class="header"><div class="title">${title}</div>${subtitle ? html`<div class="subtitle">${subtitle}</div>` : ""}</div>
+        <div class="plot-wrap">
+          <svg viewBox="0 0 1000 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#818cf8" />
+                <stop offset="50%" stop-color="#22d3ee" />
+                <stop offset="100%" stop-color="#a855f7" />
+              </linearGradient>
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#6366f1" stop-opacity="0.05" />
+              </linearGradient>
+            </defs>
+            <line class="grid-line" x1="0" y1="${padTop}" x2="1000" y2="${padTop}"></line>
+            <line class="grid-line" x1="0" y1="${padTop + innerH / 2}" x2="1000" y2="${padTop + innerH / 2}"></line>
+            <line class="grid-line" x1="0" y1="${height - padBottom}" x2="1000" y2="${height - padBottom}"></line>
+            ${area ? html`<path class="area-path" d="${areaPath}"></path>` : ""}
+            <polyline class="line-path" points="${linePoints}"></polyline>
+            ${xy.map(p => html`<circle class="data-point" cx="${p.x}" cy="${p.y}" r="4"><title>${p.label}: ${p.v}</title></circle>`)}
+          </svg>
+        </div>
+        <div class="xlabels">
+          ${points.map((p: any) => html`<div class="label">${String(p?.label || "")}</div>`)}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render pie OR donut chart.
+   */
+  private renderPieOrDonut(points: any[], title: string, subtitle: string, donut: boolean) {
+    const palette = ["#6366f1", "#22d3ee", "#a855f7", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#84cc16", "#f43f5e", "#8b5cf6"];
+    const total = points.reduce((sum, p) => sum + coerceToNumber(p?.value), 0) || 1;
+
+    const cx = 100, cy = 100, r = 90, innerR = 56;
+    let cursor = -Math.PI / 2; // start at top
+
+    const slices = points.map((p: any, idx: number) => {
+      const v = coerceToNumber(p?.value);
+      const fraction = v / total;
+      const angle = fraction * Math.PI * 2;
+      const start = cursor;
+      const end = cursor + angle;
+      cursor = end;
+
+      const x1 = cx + Math.cos(start) * r;
+      const y1 = cy + Math.sin(start) * r;
+      const x2 = cx + Math.cos(end) * r;
+      const y2 = cy + Math.sin(end) * r;
+      const largeArc = angle > Math.PI ? 1 : 0;
+      const color = palette[idx % palette.length];
+
+      let pathD: string;
+      if (donut) {
+        const ix1 = cx + Math.cos(end) * innerR;
+        const iy1 = cy + Math.sin(end) * innerR;
+        const ix2 = cx + Math.cos(start) * innerR;
+        const iy2 = cy + Math.sin(start) * innerR;
+        pathD = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} L ${ix1} ${iy1} A ${innerR} ${innerR} 0 ${largeArc} 0 ${ix2} ${iy2} Z`;
+      } else {
+        pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+      }
+
+      return { pathD, color, label: String(p?.label || ""), value: v, pct: Math.round(fraction * 100) };
+    });
+
+    return html`
+      <div class="wrap">
+        <div class="header"><div class="title">${title}</div>${subtitle ? html`<div class="subtitle">${subtitle}</div>` : ""}</div>
+        <div class="pie-wrap">
+          <svg class="pie-svg" viewBox="0 0 200 200">
+            ${slices.map(s => html`<path class="pie-slice" d="${s.pathD}" fill="${s.color}" stroke="rgba(15, 23, 42, 0.6)" stroke-width="1.5"><title>${s.label}: ${s.value} (${s.pct}%)</title></path>`)}
+            ${donut ? html`
+              <text class="center-text" x="100" y="92">${total}</text>
+              <text class="center-sub" x="100" y="115">Total</text>
+            ` : ""}
+          </svg>
+          <div class="pie-legend">
+            ${slices.map(s => html`
+              <div class="legend-item">
+                <div class="legend-swatch" style=${`background:${s.color}`}></div>
+                <div class="legend-text">
+                  <span class="legend-label">${s.label}</span>
+                  <span class="legend-value">${s.value} · ${s.pct}%</span>
+                </div>
+              </div>
+            `)}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const chart = parsed?.component?.Chart || parsed?.Chart || parsed;
+    const rawType = String(chart?.type || "bar").toLowerCase();
+    const allowed = new Set(["bar", "line", "area", "worm", "pie", "donut"]);
+    const chartType = allowed.has(rawType) ? rawType : "bar";
+    const title = chart?.title || "Chart";
+    const subtitle = chart?.subtitle || "";
+    const points = Array.isArray(chart?.data) ? chart.data : [];
+
+    if (!points.length) {
+      return html`<div class="wrap"><div class="title">${title}</div><div class="label">No chart data available</div></div>`;
+    }
+
+    const values = points.map((p: any) => coerceToNumber(p?.value));
+    const maxValue = Math.max(...values, 1);
+    const count = String(points.length);
+
+    if (chartType === "pie") return this.renderPieOrDonut(points, title, subtitle, false);
+    if (chartType === "donut") return this.renderPieOrDonut(points, title, subtitle, true);
+    if (chartType === "area" || chartType === "worm") return this.renderLineOrArea(points, maxValue, count, title, subtitle, true);
+    if (chartType === "line") return this.renderLineOrArea(points, maxValue, count, title, subtitle, false);
+    return this.renderBar(points, maxValue, count, title, subtitle);
   }
 }
 
