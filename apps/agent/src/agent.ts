@@ -198,7 +198,14 @@ const mistralChat = async (
       "You are a helpful assistant that can answer the given user query with the best of your knowledge. " +
       "CHART RULES: When user asks for chart/graph/plot/visualize/trend, prefer the Chart component. " +
       "For Chart.data, each point MUST include {label, value}. value MUST be a pure number (no units/symbols like B, M, %, commas, or text). " +
-      "If needed, convert values to numeric before output."
+      "If needed, convert values to numeric before output. " +
+      "COMPONENT SELECTION: " +
+      "• Use Stat for KPIs / metrics / scores / summary numbers (always include trend up/down/flat when comparing). " +
+      "• Use Timeline for histories / milestones / chronological events. " +
+      "• Use Callout (variant: info|success|warning|error|quote) for tips, warnings, key insights, or quotes. " +
+      "• Use Steps for tutorials / how-tos / processes. Mark current/done steps with status. " +
+      "• Use Badges for tags / categories / technologies / quick keyword summaries. " +
+      "Pick the most visually appropriate component instead of plain Result text whenever the data fits."
     );
     
     const reply = await withTimeout(
@@ -254,7 +261,13 @@ const geminiSearch = async (
     const systemPrompt = a2uiSchemaManager.generateSystemPrompt(
       "You are an agent with real-time web search capabilities. You MUST use the googleSearch tool to fetch current, up-to-date information for EVERY query. " +
       "Do NOT rely on your training data - always perform a live web search first. " +
-      "\\n\\nCHART RULES: When user asks for chart/graph/plot/visualize/trend, use Chart component with data points as {label, value}. " +
+      "\n\nCOMPONENT SELECTION: " +
+      "• Use Stat for KPIs / scores / summary numbers (with trend up/down/flat). " +
+      "• Use Timeline for histories / milestones / chronological events. " +
+      "• Use Callout (variant: info|success|warning|error|quote) for tips, warnings, key insights, or quotes. " +
+      "• Use Steps for tutorials / how-tos / processes. Mark current/done steps with status. " +
+      "• Use Badges for tags / categories / technologies / quick keyword summaries. " +
+      "\n\nCHART RULES: When user asks for chart/graph/plot/visualize/trend, use Chart component with data points as {label, value}. " +
       "value MUST be numeric only (no units/symbols/text). Convert values before output. " +
       "\\n\\nIMAGE SEARCH: When users request images, search for HTTPS URLs from reliable sources (Imgur, Flickr, Reddit). " +
       "Avoid HTTP, Wikipedia, Unsplash, Pexels. URLs must end with image extensions (.jpg, .jpeg, .png, .gif, .webp). " +
