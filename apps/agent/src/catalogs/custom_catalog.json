@@ -191,6 +191,100 @@
         }
       },
       "required": ["type", "data"]
+    },
+    "Stat": {
+      "type": "object",
+      "description": "A grid of KPI / metric cards. Use to present key numbers, scores, or summary figures with optional trend deltas.",
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "List of stat tiles",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string", "description": "Metric label" },
+              "value": { "type": "string", "description": "Headline number/text (e.g. '$1.4B', '82%', '4.7/5')" },
+              "delta": { "type": "string", "description": "Change indicator (e.g. '+12%', '-3.2%')" },
+              "trend": { "type": "string", "enum": ["up", "down", "flat"], "description": "Trend direction" },
+              "sub": { "type": "string", "description": "Optional sub-text under the number" },
+              "icon": { "type": "string", "description": "Optional emoji/icon" }
+            },
+            "required": ["label", "value"]
+          }
+        }
+      },
+      "required": ["items"]
+    },
+    "Timeline": {
+      "type": "object",
+      "description": "A vertical timeline for events, milestones, history, project phases, etc.",
+      "properties": {
+        "events": {
+          "type": "array",
+          "description": "Chronological list of events",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": { "type": "string", "description": "Time label (e.g. '2024', 'Mar 12', '10:30 AM')" },
+              "title": { "type": "string", "description": "Event title" },
+              "desc": { "type": "string", "description": "Optional description" },
+              "status": { "type": "string", "enum": ["done", "active", "warning", "pending"], "description": "Event status" }
+            },
+            "required": ["title"]
+          }
+        }
+      },
+      "required": ["events"]
+    },
+    "Callout": {
+      "type": "object",
+      "description": "An info/success/warning/error/quote box. Use for tips, warnings, key insights, or quotations.",
+      "properties": {
+        "variant": { "type": "string", "enum": ["info", "success", "warning", "error", "quote"], "description": "Visual style" },
+        "heading": { "type": "string", "description": "Optional bold heading" },
+        "content": { "type": "string", "description": "Body text" }
+      },
+      "required": ["variant", "content"]
+    },
+    "Steps": {
+      "type": "object",
+      "description": "A numbered step-by-step list. Use for tutorials, processes, or how-to guides.",
+      "properties": {
+        "current": { "type": "number", "description": "Index of currently active step (0-based, optional)" },
+        "steps": {
+          "type": "array",
+          "description": "Ordered steps",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string", "description": "Step title" },
+              "desc": { "type": "string", "description": "Optional description" },
+              "status": { "type": "string", "enum": ["done", "active", "pending"], "description": "Step status" }
+            },
+            "required": ["title"]
+          }
+        }
+      },
+      "required": ["steps"]
+    },
+    "Badges": {
+      "type": "object",
+      "description": "A row of colored chips/tags. Use for categories, statuses, technologies, or quick keyword summaries.",
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "Chip list",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string", "description": "Chip text" },
+              "variant": { "type": "string", "enum": ["default", "success", "warning", "error", "info", "muted"], "description": "Color variant" }
+            },
+            "required": ["label"]
+          }
+        }
+      },
+      "required": ["items"]
     }
   },
   "functions": [],
