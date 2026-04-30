@@ -290,15 +290,54 @@ body .copilotKitChat {
   transform: scale(1.05) !important;
 }
 
-/* Fix action buttons positioning to stay within message borders */
-.premium-chat-customization .copilotKitMessage--assistant > div:last-child,
+/* Action buttons (copy / regenerate / thumbs up / thumbs down) — keep them
+   neatly contained inside the message bubble's rounded corners. */
 .premium-chat-customization [class*="actions"],
 .premium-chat-customization [class*="Actions"] {
-  margin-top: 1.25rem !important;
-  padding-top: 1rem !important;
+  margin-top: 1rem !important;
+  padding: 0.75rem 0.25rem 0 !important;
   display: flex !important;
-  gap: 0.5rem !important;
+  gap: 0.4rem !important;
   flex-wrap: wrap !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  align-items: center !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.premium-chat-customization .copilotKitMessage [class*="actions"] button,
+.premium-chat-customization .copilotKitMessage [class*="Actions"] button,
+.premium-chat-customization .copilotKitMessage button.copilotKitButton {
+  height: 32px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.premium-chat-customization .copilotKitMessage [class*="actions"] button:hover,
+.premium-chat-customization .copilotKitMessage [class*="Actions"] button:hover,
+.premium-chat-customization .copilotKitMessage button.copilotKitButton:hover {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+.premium-chat-customization .copilotKitMessage [class*="actions"] button svg,
+.premium-chat-customization .copilotKitMessage [class*="Actions"] button svg,
+.premium-chat-customization .copilotKitMessage button.copilotKitButton svg {
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .premium-chat-customization .copilotKitInput textarea {
@@ -317,11 +356,11 @@ body .copilotKitChat {
 
 @media (max-width: 768px) {
   main {
-    padding: 1rem !important;
+    padding: 0.875rem !important;
   }
 
   header {
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 1rem !important;
   }
 
   header h1 {
@@ -341,7 +380,7 @@ body .copilotKitChat {
     padding: 0.75rem 1rem !important;
     font-size: 0.875rem !important;
   }
-  
+
   .premium-chat-customization .copilotKitMessagesList {
     padding: 0.75rem 0.5rem !important;
     gap: 0.75rem !important;
@@ -351,33 +390,79 @@ body .copilotKitChat {
     border-radius: 16px !important;
   }
 
+  .premium-chat-customization .copilotKitMessage--assistant {
+    padding: 1rem 0.875rem !important;
+  }
+
+  .premium-chat-customization .copilotKitMessage--user {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Slightly smaller action buttons on phones */
+  .premium-chat-customization .copilotKitMessage [class*="actions"] button,
+  .premium-chat-customization .copilotKitMessage [class*="Actions"] button,
+  .premium-chat-customization .copilotKitMessage button.copilotKitButton {
+    height: 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    border-radius: 9px !important;
+  }
+  .premium-chat-customization .copilotKitMessage [class*="actions"] button svg,
+  .premium-chat-customization .copilotKitMessage [class*="Actions"] button svg,
+  .premium-chat-customization .copilotKitMessage button.copilotKitButton svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Footer: avoid overflow on tiny screens, allow wrapping */
   footer {
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+    padding: 0.5rem 0.5rem calc(0.75rem + env(safe-area-inset-bottom)) !important;
+  }
+  footer > div {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0.5rem 1rem !important;
   }
 }
 
 /* Small mobile devices (320px - 375px) */
 @media (max-width: 375px) {
   main {
-    padding: 0.75rem !important;
+    padding: 0.625rem !important;
   }
 
   header {
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important;
+    gap: 0.5rem !important;
   }
 
   header h1 {
-    font-size: 1.125rem !important;
+    font-size: 1.0625rem !important;
+  }
+
+  header p {
+    font-size: 7px !important;
   }
 
   header .h-12.w-12 {
-    height: 2.5rem !important;
-    width: 2.5rem !important;
+    height: 2.25rem !important;
+    width: 2.25rem !important;
+    border-radius: 0.875rem !important;
+  }
+  header .h-12.w-12 svg {
+    height: 1.125rem !important;
+    width: 1.125rem !important;
   }
 
   .premium-chat-customization .copilotKitMessagesList {
-    padding: 0.5rem 0.25rem !important;
+    padding: 0.5rem 0.375rem !important;
     gap: 0.5rem !important;
+  }
+
+  .premium-chat-customization .copilotKitMessage--assistant {
+    padding: 0.875rem 0.75rem !important;
   }
 
   .premium-chat-customization .copilotKitInput {
