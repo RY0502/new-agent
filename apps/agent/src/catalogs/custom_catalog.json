@@ -148,7 +148,7 @@
     },
     "Chart": {
       "type": "object",
-      "description": "A chart component for visualizing numeric data as bar or line chart",
+      "description": "A chart component for visualizing numeric data. Supports bar, line, area (worm/sparkline for stocks/trends), pie (parts of a whole), and donut (pie with center label).",
       "properties": {
         "id": {
           "type": "string",
@@ -156,12 +156,16 @@
         },
         "type": {
           "type": "string",
-          "description": "Chart type",
-          "enum": ["bar", "line"]
+          "description": "Chart type. Use 'bar' for comparing categories (population, revenue per region). Use 'line' for trends over time. Use 'area' (also 'worm') for stock prices, financial time series, or sparkline-style trend lines. Use 'pie' for showing parts of a whole (market share, budget split). Use 'donut' for a pie with a total in the center.",
+          "enum": ["bar", "line", "area", "worm", "pie", "donut"]
         },
         "title": {
           "type": "string",
           "description": "Chart title"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Optional subtitle / context (e.g. unit of measurement, time range)"
         },
         "xLabel": {
           "type": "string",
