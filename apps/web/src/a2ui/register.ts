@@ -643,6 +643,306 @@ class A2uiProgress extends A2uiBase {
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────
+ * NEW COMPONENTS — Stat / Timeline / Callout / Steps / Badges
+ * Each component reads JSON from its `data` attribute (or text content) and
+ * renders a polished, mobile-friendly visualization.
+ * ─────────────────────────────────────────────────────────────────────*/
+
+class A2uiStat extends A2uiBase {
+  static properties = { data: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 20px 0; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      position: relative;
+      padding: 20px 22px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+    }
+    .card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--c1, #6366f1), var(--c2, #ec4899));
+    }
+    .card:hover { transform: translateY(-3px); border-color: rgba(165, 180, 252, 0.25); }
+    .label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #94a3b8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .icon { font-size: 14px; }
+    .value { font-size: 30px; font-weight: 900; color: #f8fafc; letter-spacing: -0.02em; line-height: 1.1; }
+    .row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .delta { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+    .delta.up { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    .delta.down { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .delta.flat { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+    .sub { font-size: 12px; color: #94a3b8; }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+      .card { padding: 16px 18px; border-radius: 18px; }
+      .value { font-size: 24px; }
+    }
+  `;
+  declare data: string | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const items: any[] = Array.isArray(parsed) ? parsed
+      : Array.isArray(parsed?.items) ? parsed.items
+      : Array.isArray(parsed?.stats) ? parsed.stats
+      : parsed && typeof parsed === "object" ? [parsed] : [];
+    if (!items.length) return html`<div class="card"><div class="label">No data</div></div>`;
+    const palette = [
+      ["#6366f1", "#a855f7"], ["#06b6d4", "#3b82f6"],
+      ["#10b981", "#22d3ee"], ["#f59e0b", "#ec4899"],
+      ["#8b5cf6", "#ec4899"], ["#22c55e", "#84cc16"],
+    ];
+    return html`
+      <div class="grid">
+        ${items.map((it: any, idx: number) => {
+          const [c1, c2] = palette[idx % palette.length];
+          const trend = String(it?.trend || "").toLowerCase();
+          const cls = trend === "up" || trend === "positive" ? "up"
+            : trend === "down" || trend === "negative" ? "down" : "flat";
+          const arrow = cls === "up" ? "▲" : cls === "down" ? "▼" : "→";
+          return html`
+            <div class="card" style=${`--c1:${c1};--c2:${c2}`}>
+              <div class="label">${it?.icon ? html`<span class="icon">${it.icon}</span>` : ""}${String(it?.label || "Stat")}</div>
+              <div class="row">
+                <div class="value">${String(it?.value ?? "—")}</div>
+                ${it?.delta != null ? html`<span class="delta ${cls}">${arrow} ${String(it.delta)}</span>` : ""}
+              </div>
+              ${it?.sub ? html`<div class="sub">${String(it.sub)}</div>` : ""}
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+}
+
+class A2uiTimeline extends A2uiBase {
+  static properties = { data: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 24px 0; }
+    .wrap { position: relative; padding-left: 28px; }
+    .wrap::before {
+      content: ""; position: absolute; top: 6px; bottom: 6px; left: 10px; width: 2px;
+      background: linear-gradient(180deg, #6366f1, #a855f7, transparent);
+      border-radius: 1px;
+    }
+    .item { position: relative; padding: 0 0 20px 0; }
+    .item:last-child { padding-bottom: 0; }
+    .dot {
+      position: absolute; left: -22px; top: 6px; width: 14px; height: 14px;
+      border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 12px rgba(99, 102, 241, 0.5);
+    }
+    .item.done .dot { background: linear-gradient(135deg, #22c55e, #10b981); box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15); }
+    .item.warn .dot { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
+    .time { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #a5b4fc; margin-bottom: 4px; }
+    .title { font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+    .desc { font-size: 13px; color: #cbd5e1; line-height: 1.6; }
+    @media (max-width: 768px) {
+      .wrap { padding-left: 24px; }
+      .wrap::before { left: 8px; }
+      .dot { left: -20px; width: 12px; height: 12px; }
+      .title { font-size: 14px; }
+      .desc { font-size: 12px; }
+    }
+  `;
+  declare data: string | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const items: any[] = Array.isArray(parsed) ? parsed
+      : Array.isArray(parsed?.events) ? parsed.events
+      : Array.isArray(parsed?.items) ? parsed.items : [];
+    if (!items.length) return html`<div style="color:#94a3b8;font-size:13px">No timeline data</div>`;
+    return html`
+      <div class="wrap">
+        ${items.map((it: any) => {
+          const status = String(it?.status || "").toLowerCase();
+          const cls = status === "done" || status === "complete" || status === "completed" ? "done"
+            : status === "warn" || status === "warning" || status === "error" ? "warn" : "";
+          return html`
+            <div class="item ${cls}">
+              <div class="dot"></div>
+              ${it?.time ? html`<div class="time">${String(it.time)}</div>` : ""}
+              <div class="title">${String(it?.title || "")}</div>
+              ${it?.desc ? html`<div class="desc">${String(it.desc)}</div>` : ""}
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+}
+
+class A2uiCallout extends A2uiBase {
+  static properties = { variant: { type: String }, heading: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 20px 0; }
+    .box {
+      position: relative;
+      border-radius: 18px;
+      padding: 16px 20px 16px 56px;
+      background: rgba(99, 102, 241, 0.06);
+      border: 1px solid rgba(99, 102, 241, 0.18);
+      backdrop-filter: blur(20px);
+      color: #e2e8f0;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .icon-wrap {
+      position: absolute; left: 16px; top: 16px; width: 28px; height: 28px;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900;
+      background: rgba(99, 102, 241, 0.18); color: #a5b4fc;
+    }
+    .title { font-weight: 800; color: #f8fafc; margin-bottom: 4px; font-size: 14px; letter-spacing: -0.01em; }
+    :host([variant="info"]) .box { background: rgba(59, 130, 246, 0.06); border-color: rgba(59, 130, 246, 0.2); }
+    :host([variant="info"]) .icon-wrap { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+    :host([variant="success"]) .box { background: rgba(34, 197, 94, 0.07); border-color: rgba(34, 197, 94, 0.22); }
+    :host([variant="success"]) .icon-wrap { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+    :host([variant="warning"]) .box { background: rgba(245, 158, 11, 0.07); border-color: rgba(245, 158, 11, 0.22); }
+    :host([variant="warning"]) .icon-wrap { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+    :host([variant="error"]) .box { background: rgba(244, 63, 94, 0.07); border-color: rgba(244, 63, 94, 0.22); }
+    :host([variant="error"]) .icon-wrap { background: rgba(244, 63, 94, 0.18); color: #fda4af; }
+    :host([variant="quote"]) .box { background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.2); padding-left: 20px; border-left: 4px solid #a855f7; font-style: italic; }
+    :host([variant="quote"]) .icon-wrap { display: none; }
+    @media (max-width: 768px) {
+      .box { font-size: 13px; padding: 14px 16px 14px 48px; border-radius: 14px; }
+    }
+  `;
+  declare variant: string | undefined;
+  declare heading: string | undefined;
+  render() {
+    const v = (this.variant || "info").toLowerCase();
+    const icon = v === "success" ? "✓" : v === "warning" ? "!" : v === "error" ? "✕" : v === "quote" ? "“" : "i";
+    return html`
+      <div class="box">
+        <div class="icon-wrap">${icon}</div>
+        ${this.heading ? html`<div class="title">${this.heading}</div>` : ""}
+        <slot></slot>
+      </div>
+    `;
+  }
+}
+
+class A2uiSteps extends A2uiBase {
+  static properties = { data: { type: String }, current: { type: Number } };
+  static styles = css`
+    :host { display: block; margin: 24px 0; }
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .item {
+      display: grid; grid-template-columns: 36px 1fr; gap: 14px; align-items: start;
+      padding: 14px 16px; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
+    .item:hover { background: rgba(255, 255, 255, 0.07); transform: translateX(3px); }
+    .num {
+      width: 36px; height: 36px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900;
+      background: rgba(99, 102, 241, 0.15); color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .item.done .num { background: linear-gradient(135deg, #22c55e, #10b981); color: white; border-color: rgba(34, 197, 94, 0.4); }
+    .item.active { border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 8px 24px -8px rgba(99, 102, 241, 0.4); }
+    .item.active .num { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border-color: rgba(165, 180, 252, 0.6); }
+    .title { font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 2px; }
+    .desc { font-size: 13px; color: #cbd5e1; line-height: 1.6; }
+    @media (max-width: 768px) {
+      .item { padding: 12px 14px; border-radius: 14px; gap: 10px; grid-template-columns: 32px 1fr; }
+      .num { width: 32px; height: 32px; font-size: 13px; border-radius: 10px; }
+      .title { font-size: 14px; }
+      .desc { font-size: 12px; }
+    }
+  `;
+  declare data: string | undefined;
+  declare current: number | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const items: any[] = Array.isArray(parsed) ? parsed
+      : Array.isArray(parsed?.steps) ? parsed.steps
+      : Array.isArray(parsed?.items) ? parsed.items : [];
+    const cur = typeof this.current === "number" ? this.current : Number(parsed?.current ?? -1);
+    if (!items.length) return html`<div style="color:#94a3b8;font-size:13px">No steps</div>`;
+    return html`
+      <div class="list">
+        ${items.map((it: any, idx: number) => {
+          const status = String(it?.status || "").toLowerCase();
+          const isDone = status === "done" || status === "complete" || status === "completed" || (cur > -1 && idx < cur);
+          const isActive = status === "active" || status === "current" || idx === cur;
+          const cls = isDone ? "done" : isActive ? "active" : "";
+          return html`
+            <div class="item ${cls}">
+              <div class="num">${isDone ? "✓" : idx + 1}</div>
+              <div>
+                <div class="title">${String(it?.title || `Step ${idx + 1}`)}</div>
+                ${it?.desc ? html`<div class="desc">${String(it.desc)}</div>` : ""}
+              </div>
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+}
+
+class A2uiBadges extends A2uiBase {
+  static properties = { data: { type: String } };
+  static styles = css`
+    :host { display: block; margin: 14px 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; letter-spacing: -0.01em;
+      background: rgba(99, 102, 241, 0.12);
+      color: #c7d2fe;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      transition: all 0.2s ease;
+    }
+    .chip:hover { transform: translateY(-1px); border-color: rgba(165, 180, 252, 0.5); }
+    .chip.success { background: rgba(34, 197, 94, 0.12); color: #86efac; border-color: rgba(34, 197, 94, 0.25); }
+    .chip.warning { background: rgba(245, 158, 11, 0.12); color: #fcd34d; border-color: rgba(245, 158, 11, 0.25); }
+    .chip.error { background: rgba(244, 63, 94, 0.12); color: #fda4af; border-color: rgba(244, 63, 94, 0.25); }
+    .chip.info { background: rgba(59, 130, 246, 0.12); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25); }
+    .chip.muted { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.25); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  `;
+  declare data: string | undefined;
+  render() {
+    const src = (this.data || this.textContent || "").trim();
+    const parsed = safeParseJSON(src);
+    const items: any[] = Array.isArray(parsed) ? parsed
+      : Array.isArray(parsed?.items) ? parsed.items
+      : Array.isArray(parsed?.badges) ? parsed.badges : [];
+    if (!items.length) return html`<div class="row"><slot></slot></div>`;
+    return html`
+      <div class="row">
+        ${items.map((it: any) => {
+          const isObj = typeof it === "object" && it !== null;
+          const label = isObj ? String(it.label || it.text || "") : String(it);
+          const variant = isObj ? String(it.variant || it.color || "default").toLowerCase() : "default";
+          return html`<span class="chip ${variant}"><span class="dot"></span>${label}</span>`;
+        })}
+      </div>
+    `;
+  }
+}
+
 // Subclasses for aliases to avoid "constructor already used" error
 class A2uiStatusLegacy extends A2uiStatus { }
 class A2uiSectionLegacy extends A2uiSection { }
@@ -665,7 +965,12 @@ const mapping = {
   "a2-progress": A2uiProgress, "a2ui-progress": A2uiProgressLegacy,
   "a2-chart": A2uiChart, "a2ui-chart": A2uiChartLegacy,
   "a2-image": A2uiImage,
-  "a2-video": A2uiVideo
+  "a2-video": A2uiVideo,
+  "a2-stat": A2uiStat,
+  "a2-timeline": A2uiTimeline,
+  "a2-callout": A2uiCallout,
+  "a2-steps": A2uiSteps,
+  "a2-badges": A2uiBadges
 };
 
 Object.entries(mapping).forEach(([tag, klass]) => {
