@@ -95,6 +95,30 @@ export function convertToLegacyFormat(components: ComponentMessage[]): string {
         parts.push(`<a2-chart>${JSON.stringify(chartData)}</a2-chart>`);
         break;
 
+      case 'Stat':
+        parts.push(`<a2-stat>${JSON.stringify({ items: Array.isArray(componentData.items) ? componentData.items : [] })}</a2-stat>`);
+        break;
+
+      case 'Timeline':
+        parts.push(`<a2-timeline>${JSON.stringify({ events: Array.isArray(componentData.events) ? componentData.events : [] })}</a2-timeline>`);
+        break;
+
+      case 'Callout': {
+        const variant = String(componentData.variant || 'info').replace(/"/g, '&quot;');
+        const heading = String(componentData.heading || '').replace(/"/g, '&quot;');
+        const content = String(componentData.content || '');
+        parts.push(`<a2-callout variant="${variant}" heading="${heading}">${content}</a2-callout>`);
+        break;
+      }
+
+      case 'Steps':
+        parts.push(`<a2-steps>${JSON.stringify({ current: componentData.current, steps: Array.isArray(componentData.steps) ? componentData.steps : [] })}</a2-steps>`);
+        break;
+
+      case 'Badges':
+        parts.push(`<a2-badges>${JSON.stringify({ items: Array.isArray(componentData.items) ? componentData.items : [] })}</a2-badges>`);
+        break;
+
       default:
         console.warn(`Unknown component type: ${componentName}`);
         // Fallback to result
