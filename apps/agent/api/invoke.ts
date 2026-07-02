@@ -1,17 +1,25 @@
 import { invokeGraph } from "../src/agent-server.js";
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
-    res.status(405).json({ error: "method_not_allowed" });
-    return;
+    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
-    const body = req.body || {};
+    const body = req.body ? await req.json() : {};
     const result = await invokeGraph(body);
-    res.status(200).json(result);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    res.status(500).json({ error: "invoke_failed", message });
+    return new Response(JSON.stringify({ error: "invoke_failed", message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

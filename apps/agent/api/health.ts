@@ -1,5 +1,8 @@
 import { getHealth } from "../src/agent-server.js";
 
-export default function handler(_req: any, res: any) {
-  res.status(200).json(getHealth());
+export default async function handler(_req: Request): Promise<Response> {
+  return new Response(JSON.stringify(getHealth()), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

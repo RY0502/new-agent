@@ -1,5 +1,8 @@
 import { getMetrics } from "../src/agent-server.js";
 
-export default function handler(_req: any, res: any) {
-  res.status(200).json(getMetrics());
+export default async function handler(_req: Request): Promise<Response> {
+  return new Response(JSON.stringify(getMetrics()), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
