@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
   "routes": [
     { "src": "/invoke", "dest": "/api/invoke" },
     { "src": "/health", "dest": "/api/health" },
