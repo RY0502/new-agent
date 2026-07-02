@@ -3,7 +3,7 @@
  * This allows gradual migration while maintaining compatibility with existing renderer
  */
 
-import { ComponentMessage } from './schema-manager';
+import { ComponentMessage } from './schema-manager.js';
 
 export function convertToLegacyFormat(components: ComponentMessage[]): string {
   const parts: string[] = [];

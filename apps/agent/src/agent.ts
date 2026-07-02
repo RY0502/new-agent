@@ -3,7 +3,6 @@
  * It defines the workflow graph, state, tools, nodes and edges.
  */
 
-import { RunnableConfig } from "@langchain/core/runnables";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { MemorySaver, StateGraph } from "@langchain/langgraph";
 import { CopilotKitStateAnnotation } from "@copilotkit/sdk-js/langchain";
@@ -13,8 +12,12 @@ import { ChatMistralAI } from "@langchain/mistralai";
 import { ChatGoogle } from "@langchain/google";
 import { ChatGroq } from "@langchain/groq";
 import * as path from "path";
-import { A2uiSchemaManager, CatalogConfig, parseResponseToParts } from "./a2ui/schema-manager";
-import { convertToLegacyFormat } from "./a2ui/component-converter";
+import { fileURLToPath } from "url";
+import { A2uiSchemaManager, CatalogConfig, parseResponseToParts } from "./a2ui/schema-manager.js";
+import { convertToLegacyFormat } from "./a2ui/component-converter.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function extractText(c: any): string {
   if (typeof c === "string") return c;
@@ -187,7 +190,7 @@ export type AgentState = typeof AgentStateAnnotation.State;
 
 const mistralChat = async (
   state: typeof AgentStateAnnotation.State,
-  _config: RunnableConfig,
+  _config: any,
 ): Promise<typeof AgentStateAnnotation.Update> => {
   try {
     const mistral = getMistralClient();
@@ -256,7 +259,7 @@ let keyToggle = true;
 
 const geminiSearch = async (
   state: typeof AgentStateAnnotation.State,
-  _config: RunnableConfig,
+  _config: any,
 ): Promise<typeof AgentStateAnnotation.Update> => {
   try {
     const llm = getGeminiClient();
@@ -324,7 +327,7 @@ const geminiSearch = async (
 };
 
 const appData = async (
-  _config: RunnableConfig
+  _config: any
 ): Promise<typeof AgentStateAnnotation.Update> => {
   const appEvent = "Classifying search intent";
   await copilotKitEmitMessage(_config, `<status>${appEvent}</status>`);
@@ -336,7 +339,7 @@ const appData = async (
 
 const groqClassify = async (
   state: typeof AgentStateAnnotation.State,
-  _config: RunnableConfig
+  _config: any
 ): Promise<typeof AgentStateAnnotation.Update> => {
   try {
     const groq = getGroqClient();
@@ -413,7 +416,7 @@ class LimitedMemorySaver extends MemorySaver {
     this.maxCheckpoints = maxCheckpoints;
   }
 
-  async put(config: RunnableConfig, checkpoint: any, metadata: any): Promise<RunnableConfig> {
+  async put(config: any, checkpoint: any, metadata: any): Promise<any> {
     const threadId = config.configurable?.thread_id || "default";
     
     // Track checkpoint count for this thread

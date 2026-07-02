@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/invoke", "dest": "/api/invoke" },
+    { "src": "/health", "dest": "/api/health" },
+    { "src": "/metrics", "dest": "/api/metrics" }
+  ]
+}
